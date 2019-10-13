@@ -37,10 +37,11 @@ class cMAPSS:
         cls.p_order   = p_order
         cls.threshold = threshold
         cls.s_rep     = s_rep
-        cls.s_len     = s_len 
+        cls.s_len     = s_len
     
+
     @classmethod
-    def preprocess(cls, input_data):
+    def basic_preprocess(cls, input_data):
         
         cls.no_engines  = input_data.iloc[-1,0]
         cls.max_cycles  = input_data['Cycles'].max()
@@ -48,19 +49,26 @@ class cMAPSS:
         input_data      = input_data.iloc[:,2:]
 
         data_variance   = input_data.var()
-        input_data      = input_data.loc[:, data_variance > cls.threshold]
-        
+        input_data     = input_data.loc[:, data_variance > cls.threshold]
+    
         for i in range(1,cls.no_engines+1):
-            
+        
             input_data.loc[engine_id == i,:] = input_data.loc[engine_id == i,:].apply(cls.savgol)
-                
+            
         #Normalising after data has been filtered
         input_data = input_data.apply(lambda x: (x-x.mean())/(x.max()-x.min()))
+        
+        return engine_id, input_data
+    
+    @classmethod
+    def train_preprocess(cls, train_data):
+        
+        engine_id, train_data = cls.basic_preprocess(train_data)
         
         #preparing data for the LSTM
         cls.train_in  = np.full((cls.no_engines*cls.s_rep, 
                                  cls.max_cycles, 
-                                 input_data.shape[1]),
+                                 train_data.shape[1]),
                                  1000.0)
             
         cls.train_out = np.full((cls.no_engines*cls.s_rep),1e-2)
@@ -68,23 +76,43 @@ class cMAPSS:
         for i in range(0, cls.no_engines*cls.s_rep, cls.s_rep):
             
             e_id      = i/cls.s_rep + 1
-            cycle_len = input_data.loc[engine_id == e_id, :].shape[0]
-            temp      = input_data.loc[engine_id == e_id, :]
+            cycle_len = train_data.loc[engine_id == e_id, :].shape[0]
+            temp      = train_data.loc[engine_id == e_id, :]
             temp      = temp.to_numpy()
             cls.train_in[i, :cycle_len, :] = temp
             
             for j in range(1, cls.s_rep):
                 
                 cls.train_in[j+i, :cycle_len-cls.s_len*j, :] = temp[:-cls.s_len*j,:]
-                cls.train_out[j+i] = cls.s_len*j            
-                    
+                cls.train_out[j+i] = cls.s_len*j
+                
+    @classmethod
+    def test_preprocess(cls, test_data):
+        
+        engine_id, test_data = cls.basic_preprocess(test_data)
+        
+        cls.max_cycles  = 362
+        
+        for i in range(1,cls.no_engines+1):
             
-                  
-    no_engines = None
-    max_cycles = None
-    train_in   = []
-    train_out  = []
-    
+            test_data.loc[engine_id == i,:] = test_data.loc[engine_id == i,:].apply(cls.savgol)
+                
+        #Normalising after data has been filtered
+        test_data = test_data.apply(lambda x: (x-x.mean())/(x.max()-x.min()))
+        
+        #preparing data for the LSTM
+        cls.test_in  = np.full((cls.no_engines, 
+                                 cls.max_cycles, 
+                                 test_data.shape[1]),
+                                 1000.0)
+            
+        for i in range(0, cls.no_engines):
+            
+            cycle_len = test_data.loc[engine_id == i+1, :].shape[0]
+            temp      = test_data.loc[engine_id == i+1, :]
+            temp      = temp.to_numpy()
+            cls.test_in[i, :cycle_len, :] = temp
+            
     win_len   = 21
     p_order   = 3
     threshold = 1e-5
@@ -99,4 +127,4 @@ if __name__ == '__main__':
     
     ci.get_data(1)
     
-    cMAPSS.preprocess(ci.Train_input)
+    cMAPSS.test_preprocess(ci.Test_input)

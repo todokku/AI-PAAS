@@ -15,7 +15,7 @@ Created on Tue Sep 17 12:19:06 2019
 # =============================================================================
 
 from   keras.models      import Sequential
-from   keras.utils       import plot_model
+#from   keras.utils       import plot_model
 
 from   keras.layers      import Dense
 from   keras.layers      import LSTM
@@ -43,7 +43,7 @@ class LSTM_to_FF:
         cls.shape = shape
         cls.model = Sequential()
         
-        cls.model.add(Masking(mask_value = 1000.0 ,input_shape=(shape[0],
+        cls.model.add(Masking(mask_value = 1000.0 ,input_shape=(None,
                                                                 shape[1])))
         
         for i in range(0, cls.lstm_layer-1):
@@ -64,7 +64,7 @@ class LSTM_to_FF:
                           optimizer='adam',
                           metrics=['mape'])
         
-        plot_model(cls.model)
+#        plot_model(cls.model)
         
         
         

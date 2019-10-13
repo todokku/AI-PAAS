@@ -20,7 +20,6 @@ class cMAPSS:
     def read_rul(cls, i):
         
         RUL_input            = pd.read_csv(f"{cls.datapath}RUL_FD00{i}.txt", header=None, names = ['RUL'])
-        RUL_input['DataSet'] = [f'FD_00{i}']*RUL_input.size
         return RUL_input
     
     @classmethod
@@ -78,10 +77,6 @@ class cMAPSS:
     def __new__(self):
         raise Exception("Cannot Create Object")
              
-    Test_input  = []
-    Train_input = []
-    RUL_input   = []
-    
     datapath     = 'C:/Users/tejas/Documents/CMAPSSData/' #default value
     NoOfSen      = 21
     NoOfOPCo     = 3
