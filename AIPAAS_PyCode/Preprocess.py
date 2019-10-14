@@ -14,7 +14,7 @@ Created on Tue Sep 17 12:19:06 2019
 # # Always use s_rep>1 to give non similar train_out values
 # =============================================================================
 
-#Libraries
+#Libraries       Thia module needs optimising , use iterators
 
 import scipy.signal      as scipy_sig
 import numpy             as np
@@ -56,7 +56,7 @@ class cMAPSS:
             input_data.loc[engine_id == i,:] = input_data.loc[engine_id == i,:].apply(cls.savgol)
             
         #Normalising after data has been filtered
-        input_data = input_data.apply(lambda x: (x-x.mean())/(x.max()-x.min()))
+        input_data = input_data.apply(lambda x: (x-x.mean())/(x.std()))
         
         return engine_id, input_data
     
@@ -91,22 +91,13 @@ class cMAPSS:
         
         engine_id, test_data = cls.basic_preprocess(test_data)
         
-        cls.max_cycles  = 362
-        
-        for i in range(1,cls.no_engines+1):
-            
-            test_data.loc[engine_id == i,:] = test_data.loc[engine_id == i,:].apply(cls.savgol)
-                
-        #Normalising after data has been filtered
-        test_data = test_data.apply(lambda x: (x-x.mean())/(x.max()-x.min()))
-        
         #preparing data for the LSTM
         cls.test_in  = np.full((cls.no_engines, 
                                  cls.max_cycles, 
                                  test_data.shape[1]),
                                  1000.0)
             
-        for i in range(0, cls.no_engines):
+        for i in range(cls.no_engines):
             
             cycle_len = test_data.loc[engine_id == i+1, :].shape[0]
             temp      = test_data.loc[engine_id == i+1, :]
