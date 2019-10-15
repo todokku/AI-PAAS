@@ -78,7 +78,7 @@ class LSTM_to_FF:
     lstm_neuron = 300
     ff_neuron   = 200
     
-    epochs=2
+    epochs=10
     
     
     

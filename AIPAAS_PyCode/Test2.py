@@ -18,7 +18,7 @@ cp.train_preprocess(ci.Train_input)
 
 #%%
 
-lstm_ff.config_model(1, 10, 1, 2)
+lstm_ff.config_model(2, 100, 1, 50)
 lstm_ff.create_model([cp.max_cycles, cp.train_in.shape[2]])
 lstm_ff.model_train(cp.train_in,cp.train_out)
 

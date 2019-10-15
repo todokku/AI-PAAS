@@ -24,7 +24,7 @@ a = a.loc[:,var>10e-5]
 #
 #a = a.apply(lambda x: (x-x.mean())/(x.max()-x.min()))
 a = a.apply(lambda x: (x-x.mean())/x.std())
-pca = PCA()
+pca = PCA(n_components=0.9, svd_solver ='full')
  
 pca.fit(a) 
 c=pca.explained_variance_ratio_
@@ -32,6 +32,7 @@ e=pca.explained_variance_
 d=pca.singular_values_
 g=c.cumsum()
 
+h=pca.transform(a)
 #def savgol(signal):
 #    
 #        smooth_sig = scipy_sig.savgol_filter(signal, 
@@ -49,7 +50,7 @@ g=c.cumsum()
 #    a.loc[e_id == i,:] = a.loc[e_id == i,:].apply(savgol)
 
 
-
+pca.n_components_
 
 
 
