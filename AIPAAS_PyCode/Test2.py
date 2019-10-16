@@ -38,3 +38,6 @@ lstm_ff.train_model(cp.train_in,cp.train_out)
 cp.test_preprocess(ci.Test_input)
 
 ct.get_score(lstm_ff.model, cp.test_in, ci.RUL_input)
+
+
+lstm_ff.history_plot()

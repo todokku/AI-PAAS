@@ -16,7 +16,7 @@ Created on Tue Sep 17 12:19:06 2019
 
 import tensorflow        as tf
 import matplotlib.pyplot as plt
-import time
+import datetime
 
 class LSTM_to_FF:
         
@@ -40,6 +40,8 @@ class LSTM_to_FF:
         self.val_split = 0.4
     
     def create_model(self):
+        
+        #add batch normalization
         
         self.model = tf.keras.models.Sequential()
         
@@ -69,35 +71,32 @@ class LSTM_to_FF:
         
     def train_model(self, train_in, train_out):
     
-        self.history = self.model.fit(train_in, 
+        self.h = self.model.fit(train_in, 
                                       train_out, 
                                       epochs= self.epochs,
                                       validation_split = self.val_split, 
                                       shuffle=True)
         
+        loss     = self.h.history['loss'][-1]
+        val_loss = self.h.history['val_loss'][-1]
+        
         #Save meta data on a SQL server
-        time.localtime()
-        self.model.save("../KerasModels/my_model.hdf5")        
+        t_stamp = datetime.datetime.now()
+        t_stamp = t_stamp.strftime('%d_%b_%y__%H_%M')
+        
+        self.model.save('../KerasModels/'+t_stamp+f'__{loss}_{val_loss}.hdf5')        
         
 
-#    def history_plot(self):
-#        
-#plt.plot(history.history['acc'])
-#plt.plot(history.history['val_acc'])
-#plt.title('Model accuracy')
-#plt.ylabel('Accuracy')
-#plt.xlabel('Epoch')
-#plt.legend(['Train', 'Test'], loc='upper left')
-#plt.show()
-#
-## Plot training & validation loss values
-#plt.plot(history.history['loss'])
-#plt.plot(history.history['val_loss'])
-#plt.title('Model loss')
-#plt.ylabel('Loss')
-#plt.xlabel('Epoch')
-#plt.legend(['Train', 'Test'], loc='upper left')
-#plt.show()     
+    def history_plot(self):
+                    
+        plt.plot(self.h.history['loss'])
+        plt.plot(self.h.history['val_loss'])
+        plt.title('Model Loss')
+        plt.ylabel('Loss')
+        plt.xlabel('Epoch')
+        plt.legend(['Train', 'Validation'], loc='upper left')
+        plt.show()
+ 
   
     
     
