@@ -72,10 +72,10 @@ class LSTM_to_FF:
     def train_model(self, train_in, train_out):
     
         self.h = self.model.fit(train_in, 
-                                      train_out, 
-                                      epochs= self.epochs,
-                                      validation_split = self.val_split, 
-                                      shuffle=True)
+                                train_out, 
+                                epochs = self.epochs,
+                                validation_split = self.val_split, 
+                                shuffle=True)
         
         loss     = self.h.history['loss'][-1]
         val_loss = self.h.history['val_loss'][-1]
