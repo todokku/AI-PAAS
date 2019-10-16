@@ -30,10 +30,11 @@ class cMAPSS:
         #Calculating S score from the NASA paper, variables can be found there
         
         d        = cls.est_rul - cls.true_rul
-        cls.rmse = (d**2)**0.5
-        cls.rmse = cls.rmse.mean()
-        d[d<0]   = np.exp(-(d[d<0]/10)) - 1
-        d[d>=0]  = np.exp(d[d>=0]/13) - 1
+        
+        cls.rmse = (d**2)
+        cls.rmse = (cls.rmse.mean())**0.5
+        d[d<0]   = np.exp(-(d[d<0]/13)) - 1
+        d[d>=0]  = np.exp(d[d>=0]/10) - 1
         cls.s    = d.sum()
         
         print(f'The score is - {cls.s} and rmse is - {cls.rmse} !!! Cry or Celebrate')
