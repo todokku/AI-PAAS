@@ -10,7 +10,7 @@ from   Preprocess  import cMAPSS     as CP
 from   Training    import LSTM_to_FF 
 from   Testing     import cMAPSS     as ct
 
-ci.set_datapath('C:/Users/Tejas/Desktop/Tejas/engine-dataset/')
+#ci.set_datapath('C:/Users/Tejas/Desktop/Tejas/engine-dataset/')
 
 ci.get_data(1)
 
@@ -20,11 +20,11 @@ cp.train_preprocess(ci.Train_input)
 #%%
 
 lstm_ff = LSTM_to_FF(cp.train_in.shape[2],
-                     lstm_layer   = 3,
-                     ff_layer     = 2,
-                     lstm_neurons = 500,
-                     ff_neurons   = 500,
-                     epochs       = 20)
+                     lstm_layer   = 2,
+                     ff_layer     = 1,
+                     lstm_neurons = 250,
+                     ff_neurons   = 130,
+                     epochs       = 40)
 
 #lstm_ff = LSTM_to_FF(cp.train_in.shape[2],
 #                     lstm_layer   = 1,

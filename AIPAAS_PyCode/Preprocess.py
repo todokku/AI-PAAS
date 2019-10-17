@@ -26,8 +26,8 @@ class cMAPSS:
                  win_len   = 21, 
                  p_order   = 3, 
                  threshold = 1e-5, 
-                 s_rep     = 6,    #Stagered Repetition
-                 s_len     = 20,   #Unit - Cycle 
+                 s_rep     = 2,    #Stagered Repetition
+                 s_len     = 60,   #Unit - Cycle 
                  pca_var   = 0.99):
         
         self.win_len   = win_len
