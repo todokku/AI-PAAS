@@ -54,10 +54,15 @@ class LSTM_to_FF:
                                                 return_sequences=True))
     
         self.model.add(tf.keras.layers.LSTM(self.lstm_neurons))
+        self.model.add(tf.keras.layers.Dropout(0.4))
+        self.model.add(tf.keras.layers.ActivityRegularization(l2=0.001))
         
         for i in range(0, self.ff_layer):
                
             self.model.add(tf.keras.layers.Dense(self.ff_neurons))
+            self.model.add(tf.keras.layers.Dropout(0.4))
+            self.model.add(tf.keras.layers.ActivityRegularization(l2=0.001))
+            
             self.model.add(tf.keras.layers.LeakyReLU(alpha=0.05))
        
         #Final Layer
@@ -76,9 +81,10 @@ class LSTM_to_FF:
                                 epochs = self.epochs,
                                 validation_split = self.val_split, 
                                 shuffle=True)
+#                                use_multiprocessing = True)
         
-        loss     = self.h.history['loss'][-1]
-        val_loss = self.h.history['val_loss'][-1]
+        loss     = round(self.h.history['loss'][-1])
+        val_loss = round(self.h.history['val_loss'][-1])
         
         #Save meta data on a SQL server
         t_stamp = datetime.datetime.now()
