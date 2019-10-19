@@ -10,13 +10,31 @@ Created on Tue Sep 17 12:19:06 2019
 
 """
 
-# =============================================================================
+# =========================================================================================
 # Choose an appropriate model to create and Train  # Add saving and plotting capabilities
-# =============================================================================
+# =========================================================================================
 
 import tensorflow        as tf
 import matplotlib.pyplot as plt
+import numpy             as np
 import datetime
+
+class DataGenerator(tf.keras.utils.Sequence):
+    
+    def __init__(self, in_npy, out_npy, batch_size): 
+        
+        self.input_data  = np.memmap(in_npy)     #input output w.r.t the final model
+        self.output_data = np.memmap(out_npy) 
+        self.batch_size  = batch_size
+
+    def __len__(self):
+        return int(np.ceil(len(self.input_data) / self.batch_size))
+
+    def __getitem__(self, index):
+
+        return self.input_data[index*self.batch_size : (index+1)*self.batch_size,:], 
+        self.output_data[index*self.batch_size : (index+1)*self.batch_size,:]
+
 
 class LSTM_to_FF:
         
@@ -27,7 +45,9 @@ class LSTM_to_FF:
                  ff_layer     = 1, 
                  ff_neurons   = 100,
                  epochs       = 10,
-                 val_split    = 0.4):
+                 val_split    = 0.4,
+                 batch_size   = 32,
+                 mp           = False):
         
         self.lstm_layer = lstm_layer 
         self.ff_layer   = ff_layer
@@ -37,20 +57,20 @@ class LSTM_to_FF:
         
         self.features  = features
         self.epochs    = epochs 
-        self.val_split = 0.4
+        self.val_split = val_split
+        self.mp        = mp
         
-# =============================================================================
+        self.batch_size = 32
+        
+# ================================================================================================
     
     def create_model(self):
         
         #add batch normalization
-        
-        self.mp = False #No Multiprocessing
-        
         self.model = tf.keras.models.Sequential()
         
         self.model.add(tf.keras.layers.Masking(mask_value = 1000.0 ,
-                                              input_shape=(None,self.features)))
+                                               input_shape=(None,self.features)))
         
         for i in range(0, self.lstm_layer-1):
             
@@ -77,55 +97,34 @@ class LSTM_to_FF:
         
         print(self.model.summary())
         
-# =============================================================================
-    
-    def create_model_multip(self):
+# ================================================================================================
         
-        #add batch normalization
+    def train_model(self, 
+                    tin_npy   = None, 
+                    tout_npy  = None,
+                    vin_npy   = None,
+                    vout_npy  = None,
+                    train_in  = None, 
+                    train_out = None):
         
-        self.mp = False #No Multiprocessing
-        
-        self.model = tf.keras.models.Sequential()
-        
-        self.model.add(tf.keras.layers.Masking(mask_value = 1000.0 ,
-                                              input_shape=(None,self.features)))
-        
-        for i in range(0, self.lstm_layer-1):
+        if self.mp == True:
             
-            self.model.add(tf.keras.layers.LSTM(self.lstm_neurons, 
-                                                return_sequences=True))
-    
-        self.model.add(tf.keras.layers.LSTM(self.lstm_neurons))
-        self.model.add(tf.keras.layers.Dropout(0.4))
-        self.model.add(tf.keras.layers.ActivityRegularization(l2=0.001))
-        
-        for i in range(0, self.ff_layer):
-               
-            self.model.add(tf.keras.layers.Dense(self.ff_neurons))
-            self.model.add(tf.keras.layers.Dropout(0.4))
-            self.model.add(tf.keras.layers.ActivityRegularization(l2=0.001))
+            self.h = self.model.fit_generator(DataGenerator(tin_npy, tout_npy, self.batch_size), 
+                                              validation_data = DataGenerator(vin_npy, vout_npy, self.batch_size), 
+                                              epochs = self.epochs,
+                                              workers = 1,
+                                              use_multiprocessing = True)
             
-            self.model.add(tf.keras.layers.LeakyReLU(alpha=0.05))
-       
-        #Final Layer
-        self.model.add(tf.keras.layers.Dense(1))
+        else:
+            self.h = self.model.fit(train_in, 
+                                    train_out, 
+                                    epochs = self.epochs,
+                                    validation_split = self.val_split,
+                                    batch_size = self.batch_size,
+                                    shuffle=True)
         
-        self.model.compile(loss='mse',
-                          optimizer='adam')
-        
-        print(self.model.summary())
-        
-    def train_model(self, train_in, train_out):
-    
-        self.h = self.model.fit(train_in, 
-                                train_out, 
-                                epochs = self.epochs,
-                                validation_split = self.val_split, 
-                                shuffle=True,
-                                use_multiprocessing = self.mp)
-        
-        loss     = round(self.h.history['loss'][-1])
-        val_loss = round(self.h.history['val_loss'][-1])
+        loss     = int(round(self.h.history['loss'][-1]))
+        val_loss = int(round(self.h.history['val_loss'][-1]))
         
         #Save meta data on a SQL server
         t_stamp = datetime.datetime.now()
@@ -133,6 +132,7 @@ class LSTM_to_FF:
         
         self.model.save('../KerasModels/'+t_stamp+f'__{loss}_{val_loss}.hdf5')        
         
+# ================================================================================================
 
     def history_plot(self):
                     

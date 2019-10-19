@@ -33,9 +33,14 @@ class cMAPSS:
         
         cls.rmse = (d**2)
         cls.rmse = (cls.rmse.mean())**0.5
-        d[d<0]   = np.exp(-(d[d<0]/13)) - 1
+        
+        
+        #test this after multiprocessing and gpu is done
         d[d>=0]  = np.exp(d[d>=0]/10) - 1
-        cls.s    = d.sum()
+        d[d<0]   = np.exp(-(d[d<0]/13)) - 1
+        
+        
+        cls.s    = int(np.round(d.sum()))
         
         print(f'The score is - {cls.s} and rmse is - {cls.rmse} !!! Cry or Celebrate')
         

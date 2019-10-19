@@ -14,8 +14,8 @@ Created on Tue Sep 17 12:19:06 2019
 # # Always use s_rep>1 to give non similar train_out values
 # =============================================================================
 
-#Libraries       Thia module needs optimising , use iterators
-
+#Libraries       This module needs optimising , use iterators
+#uSe single module config files
 import scipy.signal          as scipy_sig
 import numpy                 as np
 import sklearn.decomposition as skl_d
@@ -28,7 +28,9 @@ class cMAPSS:
                  threshold = 1e-5, 
                  s_rep     = 2,    #Stagered Repetition
                  s_len     = 60,   #Unit - Cycle 
-                 pca_var   = 0.99):
+                 pca_var   = 0.99,
+                 val_split = 0.4,
+                 mp        = False):
         
         self.win_len   = win_len
         self.p_order   = p_order
@@ -36,6 +38,8 @@ class cMAPSS:
         self.s_rep     = s_rep
         self.s_len     = s_len
         self.pca_var   = pca_var
+        self.val_split = val_split
+        self.mp        = mp
     
     def savgol(self, signal):
     
@@ -47,8 +51,8 @@ class cMAPSS:
 
     def basic_preprocess(self, input_data):
         
-        self.no_engines  = input_data.iloc[-1,0]
-        self.max_cycles  = input_data['Cycles'].max()
+        self.no_engines = input_data.iloc[-1,0]
+        self.max_cycles = input_data['Cycles'].max()
         engine_id       = input_data.iloc[:,0]
         input_data      = input_data.iloc[:,2:]
 
@@ -68,11 +72,11 @@ class cMAPSS:
         
         engine_id, train_data = self.basic_preprocess(train_data)
                 
-        pca          = skl_d.PCA(n_components = self.pca_var, svd_solver ='full')
-        train_data   = pca.fit_transform(train_data)
+        pca           = skl_d.PCA(n_components = self.pca_var, svd_solver ='full')
+        train_data    = pca.fit_transform(train_data)
         self.features = pca.n_components_
         
-        print(f'\nNumber of extracted features are {self.features}\nReduced from {train_data.shape[1]}\n')
+        print(f'\nNumber of extracted features are {self.features}')
         
         #preparing data for the LSTM
         self.train_in  = np.full((self.no_engines*self.s_rep, 
@@ -93,6 +97,25 @@ class cMAPSS:
                 
                 self.train_in[j+i, :cycle_len-self.s_len*j, :] = temp[:-self.s_len*j,:]
                 self.train_out[j+i] = self.s_len*j
+                
+        train_id = np.arange(self.no_engines*self.s_rep)
+        np.random.shuffle(train_id)
+        tv_s = np.ceil(self.val_split*self.no_engines*self.s_rep)
+        tv_s = tv_s.astype('int64')
+        val_id   = train_id[ : tv_s]
+        train_id = train_id[tv_s : ]
+        
+        if self.mp == True :
+        
+            self.tin_npy  = './np_cache/tin_data.npy'
+            self.tout_npy = './np_cache/tout_data.npy'
+            self.vin_npy  = './np_cache/vin_data.npy'
+            self.vout_npy = './np_cache/vout_data.npy'
+                   
+            np.save(self.tin_npy,self.train_in[train_id,:])
+            np.save(self.tout_npy,self.train_out[train_id])
+            np.save(self.vin_npy,self.train_in[val_id,:])
+            np.save(self.vout_npy,self.train_out[val_id])
                 
     def test_preprocess(self, test_data):
         
@@ -122,12 +145,7 @@ class cMAPSS:
             temp      = test_data[engine_id == i+1, :]
             self.test_in[i, :cycle_len, :] = temp
             
-    def setup_server():
-        pass
-    
-    def dist_training():
-        pass
-
+  
 if __name__ == '__main__':
     
     from Input import cMAPSS as ci
