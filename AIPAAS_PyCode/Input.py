@@ -6,7 +6,7 @@ Created on Tue Sep 17 12:19:06 2019
 
 @author: 
     Tejas Janardhan
-    AI-PAAS Phd Candidate
+    AI-PAAS Phd Student
 
 """
 #Libraries

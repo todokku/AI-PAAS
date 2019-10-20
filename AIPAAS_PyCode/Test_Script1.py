@@ -12,10 +12,10 @@ from Testing    import cMAPSS as ct
 import Training as tr
 
 
-
+ug = True
 ci.get_data(1)
 
-cp = CP()
+cp = CP(use_gen = True)
 cp.train_preprocess(ci.Train_input)
 
 lstm_ff = tr.LSTM_to_FF(cp.features,
@@ -23,12 +23,13 @@ lstm_ff = tr.LSTM_to_FF(cp.features,
                         lstm_neurons = 300, 
                         ff_layer     = 2, 
                         ff_neurons   = 150,
-                        epochs       = 40)
+                        epochs       = 40,
+                        use_gen = ug)
 
 lstm_ff.create_model()
-#lstm_ff.train_model(cp.tin_npy,cp.tout_npy,cp.vin_npy,cp.vout_npy)
+lstm_ff.train_model(cp.tin_npy,cp.tout_npy,cp.vin_npy,cp.vout_npy)
 
-lstm_ff.train_model(train_in = cp.train_in, train_out = cp.train_out)
+#lstm_ff.train_model(train_in = cp.train_in, train_out = cp.train_out)
 
 
 cp.test_preprocess(ci.Test_input)

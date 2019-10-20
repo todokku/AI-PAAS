@@ -6,12 +6,12 @@ Created on Tue Sep 17 12:19:06 2019
 
 @author: 
     Tejas Janardhan
-    AI-PAAS Phd Candidate
+    AI-PAAS Phd Student
 
 """
 
 # =========================================================================================
-# Choose an appropriate model to create and Train  # Add saving and plotting capabilities
+# Choose an appropriate model to create and Train
 # =========================================================================================
 
 import tensorflow        as tf
@@ -23,18 +23,33 @@ class DataGenerator(tf.keras.utils.Sequence):
     
     def __init__(self, in_npy, out_npy, batch_size): 
         
-        self.input_data  = np.memmap(in_npy)     #input output w.r.t the final model
-        self.output_data = np.memmap(out_npy) 
+        self.input_data  = np.load(in_npy,  mmap_mode = 'r')     #input output w.r.t the final model
+        self.output_data = np.load(out_npy, mmap_mode = 'r') 
         self.batch_size  = batch_size
+        self.batch_no    = int(np.ceil(self.input_data.shape[0] / self.batch_size))
 
     def __len__(self):
-        return int(np.ceil(len(self.input_data) / self.batch_size))
+        return self.batch_no
 
     def __getitem__(self, index):
-
-        return self.input_data[index*self.batch_size : (index+1)*self.batch_size,:], 
-        self.output_data[index*self.batch_size : (index+1)*self.batch_size,:]
-
+        
+        if index == self.batch_no-1:
+            
+            X = np.copy(self.input_data[index*self.batch_size: , : , : ])
+            y = np.copy(self.output_data[index*self.batch_size: ])
+            
+            return X,y
+        
+        else:
+            X = np.copy(self.input_data[index*self.batch_size:(index+1)*self.batch_size , : , : ])
+            y = np.copy(self.output_data[index*self.batch_size: (index+1)*self.batch_size])
+            
+            return X, y
+        
+    def on_epoch_end(self):
+        
+       pass
+   
 
 class LSTM_to_FF:
         
@@ -46,8 +61,8 @@ class LSTM_to_FF:
                  ff_neurons   = 100,
                  epochs       = 10,
                  val_split    = 0.4,
-                 batch_size   = 32,
-                 mp           = False):
+                 batch_size   = 64,
+                 use_gen      = False):
         
         self.lstm_layer = lstm_layer 
         self.ff_layer   = ff_layer
@@ -74,8 +89,9 @@ class LSTM_to_FF:
         
         for i in range(0, self.lstm_layer-1):
             
-            self.model.add(tf.keras.layers.LSTM(self.lstm_neurons, 
-                                                return_sequences=True))
+            self.model.add(tf.keras.layers.LSTM(self.lstm_neurons, return_sequences=True))
+            self.model.add(tf.keras.layers.Dropout(0.4))
+            self.model.add(tf.keras.layers.ActivityRegularization(l2=0.001))
     
         self.model.add(tf.keras.layers.LSTM(self.lstm_neurons))
         self.model.add(tf.keras.layers.Dropout(0.4))
@@ -86,7 +102,6 @@ class LSTM_to_FF:
             self.model.add(tf.keras.layers.Dense(self.ff_neurons))
             self.model.add(tf.keras.layers.Dropout(0.4))
             self.model.add(tf.keras.layers.ActivityRegularization(l2=0.001))
-            
             self.model.add(tf.keras.layers.LeakyReLU(alpha=0.05))
        
         #Final Layer
@@ -109,11 +124,14 @@ class LSTM_to_FF:
         
         if self.mp == True:
             
-            self.h = self.model.fit_generator(DataGenerator(tin_npy, tout_npy, self.batch_size), 
-                                              validation_data = DataGenerator(vin_npy, vout_npy, self.batch_size), 
-                                              epochs = self.epochs,
-                                              workers = 1,
-                                              use_multiprocessing = True)
+            train_gen = DataGenerator(tin_npy, tout_npy, self.batch_size)
+            val_gen   = DataGenerator(vin_npy, vout_npy, self.batch_size)
+            #TODO add workers and multiproceccing
+            self.h = self.model.fit_generator(train_gen, 
+                                              validation_data = val_gen, 
+                                              epochs = self.epochs)
+            del train_gen
+            del val_gen
             
         else:
             self.h = self.model.fit(train_in, 

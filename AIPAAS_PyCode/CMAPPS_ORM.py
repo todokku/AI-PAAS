@@ -7,7 +7,7 @@ Created on Sat Sep 21 13:31:23 2019
 
 @author: 
     Tejas Janardhan
-    AI-PAAS Phd Candidate
+    AI-PAAS Phd Student
     
 """
 import sqlalchemy as sql_al

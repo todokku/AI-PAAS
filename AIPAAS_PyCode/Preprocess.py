@@ -6,19 +6,20 @@ Created on Tue Sep 17 12:19:06 2019
 
 @author: 
     Tejas Janardhan
-    AI-PAAS Phd Candidate
+    AI-PAAS Phd Student
 
 """
 
-# =============================================================================
+# =================================================================================================
 # # Always use s_rep>1 to give non similar train_out values
-# =============================================================================
+# =================================================================================================
 
 #Libraries       This module needs optimising , use iterators
 #uSe single module config files
 import scipy.signal          as scipy_sig
 import numpy                 as np
 import sklearn.decomposition as skl_d
+import os
 
 class cMAPSS:
 
@@ -28,9 +29,9 @@ class cMAPSS:
                  threshold = 1e-5, 
                  s_rep     = 2,    #Stagered Repetition
                  s_len     = 60,   #Unit - Cycle 
-                 pca_var   = 0.99,
+                 pca_var   = 0.90,
                  val_split = 0.4,
-                 mp        = False):
+                 use_gen   = False):
         
         self.win_len   = win_len
         self.p_order   = p_order
@@ -39,7 +40,7 @@ class cMAPSS:
         self.s_len     = s_len
         self.pca_var   = pca_var
         self.val_split = val_split
-        self.mp        = mp
+        self.use_gen   = use_gen
     
     def savgol(self, signal):
     
@@ -100,21 +101,28 @@ class cMAPSS:
                 
         train_id = np.arange(self.no_engines*self.s_rep)
         np.random.shuffle(train_id)
-        tv_s = np.ceil(self.val_split*self.no_engines*self.s_rep)
-        tv_s = tv_s.astype('int64')
+        
+        tv_s     = int(np.ceil(self.val_split*self.no_engines*self.s_rep))
         val_id   = train_id[ : tv_s]
         train_id = train_id[tv_s : ]
         
         if self.mp == True :
-        
+            
             self.tin_npy  = './np_cache/tin_data.npy'
             self.tout_npy = './np_cache/tout_data.npy'
             self.vin_npy  = './np_cache/vin_data.npy'
             self.vout_npy = './np_cache/vout_data.npy'
-                   
-            np.save(self.tin_npy,self.train_in[train_id,:])
+            
+            if os.path.isfile(self.tin_npy):
+                
+                os.remove(self.tin_npy)
+                os.remove(self.tout_npy)
+                os.remove(self.vin_npy)
+                os.remove(self.vout_npy)
+            
+            np.save(self.tin_npy ,self.train_in [train_id,:,:])
             np.save(self.tout_npy,self.train_out[train_id])
-            np.save(self.vin_npy,self.train_in[val_id,:])
+            np.save(self.vin_npy ,self.train_in [val_id  ,:,:])
             np.save(self.vout_npy,self.train_out[val_id])
                 
     def test_preprocess(self, test_data):
