@@ -63,8 +63,10 @@ class LSTM_to_FF:
                  ff_layer     = 1, 
                  ff_neurons   = 100,
                  epochs       = 10,
-                 val_split    = 0.4,
-                 batch_size   = 64,
+                 val_split    = 0.2,
+                 batch_size   = 32,
+                 workers      = 1,
+                 multi_process = False,
                  use_gen       = False,
                  enable_checkp = False):
         
@@ -81,6 +83,8 @@ class LSTM_to_FF:
 
         self.use_gen       = use_gen
         self.enable_checkp = enable_checkp
+        self.workers       = workers
+        self.multi_process = multi_process
         
 # ================================================================================================
     
@@ -137,25 +141,26 @@ class LSTM_to_FF:
             
             path = './KerasModels/'+t_stamp
             os.mkdir(path)
-            callbacks.append(tf.keras.callbacks.ModelCheckpoint(path + '__{loss}_{val_loss}__{epoch}.hdf5',
+            callbacks.append(tf.keras.callbacks.ModelCheckpoint(path + f'__{loss}_{val_loss}__{epoch}.hdf5',
                                                                 'val_loss',
-                                                                save_freq = 10*200)) #change this
-        
-        
-        
+                                                                save_freq = 10*shape[0])) #change this
+
         if self.use_gen == True:
             
             train_gen = DataGenerator(tin_npy, tout_npy, self.batch_size)
             val_gen   = DataGenerator(vin_npy, vout_npy, self.batch_size)
-            #TODO add workers and multiproceccing
+            #TODO temp fix with python multiprocess
             self.h = self.model.fit_generator(train_gen, 
                                               validation_data = val_gen, 
                                               epochs = self.epochs,
-                                              callbacks = callbacks)
+                                              callbacks = callbacks,
+                                              workers = self.workers,
+                                              use_multiprocessing = self.multi_process)
             del train_gen
             del val_gen
             
         else:
+            
             self.h = self.model.fit(train_in, 
                                     train_out, 
                                     epochs = self.epochs,
