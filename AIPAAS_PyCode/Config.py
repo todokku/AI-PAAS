@@ -16,12 +16,7 @@ Created on Sun Oct 20 13:40:25 2019
 # ==================================================================================================
 
 
-sys_params_t = {'use_gen'       : False, #only to be used with GPU i think
-                'enable_checkp' : False,
-                'multi_process' : False,  #always false otherwise gives an error
-                'workers'       : 5}
-
-sys_params_p = {'use_gen' : sys_params_t['use_gen']}
+sys_params = {'enable_checkp' : False}
 
 #Expose more params to imporve score during 
 

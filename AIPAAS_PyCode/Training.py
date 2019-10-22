@@ -20,40 +20,6 @@ import numpy             as np
 import datetime
 import os
 
-class DataGenerator(tf.keras.utils.Sequence):
-    
-    def __init__(self, in_npy, out_npy, batch_size): 
-        
-        self.input_data  = np.load(in_npy,  mmap_mode = 'r')     #input output w.r.t the final model
-        self.output_data = np.load(out_npy, mmap_mode = 'r') 
-        self.batch_size  = batch_size
-        self.batch_no    = int(np.ceil(self.input_data.shape[0] / self.batch_size))
-
-    def __len__(self):
-        return self.batch_no
-
-    def __getitem__(self, index):
-        
-        if index == self.batch_no-1:
-            
-            X = np.copy(self.input_data[index*self.batch_size: , : , : ])
-            y = np.copy(self.output_data[index*self.batch_size: ])
-            
-            return X,y
-        
-        else:
-            X = np.copy(self.input_data[index*self.batch_size:(index+1)*self.batch_size , : , : ])
-            y = np.copy(self.output_data[index*self.batch_size: (index+1)*self.batch_size])
-            
-            return X, y
-        
-    def on_epoch_end(self):
-        
-       pass
-   
-# ================================================================================================== 
-# ==================================================================================================
-
 class LSTM_to_FF:
         
     def __init__(self,
@@ -145,22 +111,7 @@ class LSTM_to_FF:
                                                                 'val_loss',
                                                                 save_freq = 10*shape[0])) #change this
 
-        if self.use_gen == True:
-            
-            train_gen = DataGenerator(tin_npy, tout_npy, self.batch_size)
-            val_gen   = DataGenerator(vin_npy, vout_npy, self.batch_size)
-            #TODO temp fix with python multiprocess
-            self.h = self.model.fit_generator(train_gen, 
-                                              validation_data = val_gen, 
-                                              epochs = self.epochs,
-                                              callbacks = callbacks,
-                                              workers = self.workers,
-                                              use_multiprocessing = self.multi_process)
-            del train_gen
-            del val_gen
-            
-        else:
-            
+              
             self.h = self.model.fit(train_in, 
                                     train_out, 
                                     epochs = self.epochs,
@@ -187,6 +138,42 @@ class LSTM_to_FF:
         plt.xlabel('Epoch')
         plt.legend(['Train', 'Validation'], loc='upper left')
         plt.show()
+        
+# ================================================================================================== 
+# ==================================================================================================
+        
+class DataGenerator(tf.keras.utils.Sequence):
+    
+    def __init__(self, in_npy, out_npy, batch_size): 
+        
+        self.input_data  = np.load(in_npy,  mmap_mode = 'r')     #input output w.r.t the final model
+        self.output_data = np.load(out_npy, mmap_mode = 'r') 
+        self.batch_size  = batch_size
+        self.batch_no    = int(np.ceil(self.input_data.shape[0] / self.batch_size))
+
+    def __len__(self):
+        return self.batch_no
+
+    def __getitem__(self, index):
+        
+        if index == self.batch_no-1:
+            
+            X = np.copy(self.input_data[index*self.batch_size: , : , : ])
+            y = np.copy(self.output_data[index*self.batch_size: ])
+            
+            return X,y
+        
+        else:
+            X = np.copy(self.input_data[index*self.batch_size:(index+1)*self.batch_size , : , : ])
+            y = np.copy(self.output_data[index*self.batch_size: (index+1)*self.batch_size])
+            
+            return X, y
+        
+    def on_epoch_end(self):
+        
+       pass
+   
+
  
   
     

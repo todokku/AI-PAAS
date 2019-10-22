@@ -31,8 +31,7 @@ class cMAPSS:
                  s_len     = 40,   #Unit - Cycle 
                  pca_var   = 0.97,
                  val_split = 0.4,
-                 epsilon   = 1e-5,
-                 use_gen   = False):   #TODO Automatic use_gen detection
+                 epsilon   = 1e-5):   #TODO Automatic use_gen detection
         
         self.win_len   = win_len
         self.p_order   = p_order
@@ -101,40 +100,6 @@ class cMAPSS:
                 self.train_in[j+i, -(cycle_len-self.s_len*j): , :] = temp[:-self.s_len*j,:]
                 self.train_out[j+i] = self.s_len*j
                 
-        train_id = np.arange(self.no_engines*self.s_rep)
-        np.random.shuffle(train_id)
-        
-        tv_s     = int(np.ceil(self.val_split*self.no_engines*self.s_rep))
-        val_id   = train_id[ : tv_s]
-        train_id = train_id[tv_s : ]
-        
-        if self.use_gen == True :
-            
-            tin_npy  = './np_cache/tin_data.npy'
-            tout_npy = './np_cache/tout_data.npy'
-            vin_npy  = './np_cache/vin_data.npy'
-            vout_npy = './np_cache/vout_data.npy'
-            
-            if os.path.isfile(tin_npy):
-                
-                os.remove(tin_npy)
-                os.remove(tout_npy)
-                os.remove(vin_npy)
-                os.remove(vout_npy)
-            
-            np.save(tin_npy ,self.train_in [train_id,:,:])
-            np.save(tout_npy,self.train_out[train_id])
-            np.save(vin_npy ,self.train_in [val_id  ,:,:])
-            np.save(vout_npy,self.train_out[val_id])
-            
-            self.npy_files = {'tin_npy'  : './np_cache/tin_data.npy',
-                              'tout_npy' : './np_cache/tout_data.npy',
-                              'vin_npy'  : './np_cache/vin_data.npy',
-                              'vout_npy' : './np_cache/vout_data.npy'}
-            
-            del self.train_in
-            del self.train_out
-                
     def test_preprocess(self, test_data):
         
         engine_id, test_data = self.basic_preprocess(test_data)
@@ -162,6 +127,40 @@ class cMAPSS:
             cycle_len = test_data[engine_id == i+1, :].shape[0]
             temp      = test_data[engine_id == i+1, :]
             self.test_in[i, :cycle_len, :] = temp
+            
+    def generator_preprocess(self):
+        
+        train_id = np.arange(self.no_engines*self.s_rep)
+        np.random.shuffle(train_id)
+        
+        tv_s     = int(np.ceil(self.val_split*self.no_engines*self.s_rep))
+        val_id   = train_id[ : tv_s]
+        train_id = train_id[tv_s : ]
+        
+        tin_npy  = './np_cache/tin_data.npy'
+        tout_npy = './np_cache/tout_data.npy'
+        vin_npy  = './np_cache/vin_data.npy'
+        vout_npy = './np_cache/vout_data.npy'
+            
+        if os.path.isfile(tin_npy):
+                
+            os.remove(tin_npy)
+            os.remove(tout_npy)
+            os.remove(vin_npy)
+            os.remove(vout_npy)
+            
+        np.save(tin_npy ,self.train_in [train_id,:,:])
+        np.save(tout_npy,self.train_out[train_id])
+        np.save(vin_npy ,self.train_in [val_id  ,:,:])
+        np.save(vout_npy,self.train_out[val_id])
+            
+        self.npy_files = {'tin_npy'  : './np_cache/tin_data.npy',
+                          'tout_npy' : './np_cache/tout_data.npy',
+                          'vin_npy'  : './np_cache/vin_data.npy',
+                          'vout_npy' : './np_cache/vout_data.npy'}
+            
+        del self.train_in
+        del self.train_out
             
   
 if __name__ == '__main__':
