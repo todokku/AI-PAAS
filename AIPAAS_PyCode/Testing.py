@@ -18,6 +18,9 @@ Created on Tue Sep 17 12:19:06 2019
 
 import numpy as np
 
+def read_model():
+    pass
+
 
 class cMAPSS:
     
@@ -29,7 +32,7 @@ class cMAPSS:
                 
         #Calculating S score from the NASA paper, variables can be found there
         
-        d        = cls.est_rul - cls.true_rul
+        d = cls.est_rul - cls.true_rul
         
         cls.rmse = (d**2)
         cls.rmse = (cls.rmse.mean())**0.5
@@ -43,6 +46,10 @@ class cMAPSS:
         cls.s    = int(np.round(d.sum()))
         
         print(f'The score is - {cls.s} and rmse is - {cls.rmse} !!! Cry or Celebrate')
+        
+    def __init__(self):
+        
+        raise Exception('Cannot Create new Object')
         
         
         

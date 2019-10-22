@@ -18,6 +18,7 @@ import tensorflow        as tf
 import matplotlib.pyplot as plt
 import numpy             as np
 import datetime
+import os
 
 class DataGenerator(tf.keras.utils.Sequence):
     
@@ -50,6 +51,8 @@ class DataGenerator(tf.keras.utils.Sequence):
         
        pass
    
+# ================================================================================================== 
+# ==================================================================================================
 
 class LSTM_to_FF:
         
@@ -62,7 +65,8 @@ class LSTM_to_FF:
                  epochs       = 10,
                  val_split    = 0.4,
                  batch_size   = 64,
-                 use_gen      = False):
+                 use_gen       = False,
+                 enable_checkp = False):
         
         self.lstm_layer = lstm_layer 
         self.ff_layer   = ff_layer
@@ -70,25 +74,26 @@ class LSTM_to_FF:
         self.lstm_neurons = lstm_neurons
         self.ff_neurons   = ff_neurons
         
-        self.features  = features
-        self.epochs    = epochs 
-        self.val_split = val_split
-        self.mp        = mp
-        
-        self.batch_size = 32
+        self.features   = features
+        self.epochs     = epochs 
+        self.val_split  = val_split
+        self.batch_size = batch_size
+
+        self.use_gen       = use_gen
+        self.enable_checkp = enable_checkp
         
 # ================================================================================================
     
     def create_model(self):
         
-        #add batch normalization
+        #TODO add batch normalization
         self.model = tf.keras.models.Sequential()
         
         self.model.add(tf.keras.layers.Masking(mask_value = 1000.0 ,
                                                input_shape=(None,self.features)))
         
         for i in range(0, self.lstm_layer-1):
-            
+            #TODO add cuda lstm after testing normal lstm with gpu
             self.model.add(tf.keras.layers.LSTM(self.lstm_neurons, return_sequences=True))
             self.model.add(tf.keras.layers.Dropout(0.4))
             self.model.add(tf.keras.layers.ActivityRegularization(l2=0.001))
@@ -106,7 +111,7 @@ class LSTM_to_FF:
        
         #Final Layer
         self.model.add(tf.keras.layers.Dense(1))
-        
+              
         self.model.compile(loss='mse',
                           optimizer='adam')
         
@@ -114,7 +119,7 @@ class LSTM_to_FF:
         
 # ================================================================================================
         
-    def train_model(self, 
+    def train_model(self,
                     tin_npy   = None, 
                     tout_npy  = None,
                     vin_npy   = None,
@@ -122,14 +127,31 @@ class LSTM_to_FF:
                     train_in  = None, 
                     train_out = None):
         
-        if self.mp == True:
+        t_stamp = datetime.datetime.now()
+        t_stamp = t_stamp.strftime('%d_%b_%y__%H_%M')
+        
+        #Callbacks
+        callbacks = []
+
+        if self.enable_checkp == True:
+            
+            path = './KerasModels/'+t_stamp
+            os.mkdir(path)
+            callbacks.append(tf.keras.callbacks.ModelCheckpoint(path + '__{loss}_{val_loss}__{epoch}.hdf5',
+                                                                'val_loss',
+                                                                save_freq = 10*200)) #change this
+        
+        
+        
+        if self.use_gen == True:
             
             train_gen = DataGenerator(tin_npy, tout_npy, self.batch_size)
             val_gen   = DataGenerator(vin_npy, vout_npy, self.batch_size)
             #TODO add workers and multiproceccing
             self.h = self.model.fit_generator(train_gen, 
                                               validation_data = val_gen, 
-                                              epochs = self.epochs)
+                                              epochs = self.epochs,
+                                              callbacks = callbacks)
             del train_gen
             del val_gen
             
@@ -139,15 +161,14 @@ class LSTM_to_FF:
                                     epochs = self.epochs,
                                     validation_split = self.val_split,
                                     batch_size = self.batch_size,
-                                    shuffle=True)
+                                    shuffle=True,
+                                    callbacks = callbacks)
         
         loss     = int(round(self.h.history['loss'][-1]))
         val_loss = int(round(self.h.history['val_loss'][-1]))
         
-        #Save meta data on a SQL server
-        t_stamp = datetime.datetime.now()
-        t_stamp = t_stamp.strftime('%d_%b_%y__%H_%M')
-        
+        #TODO Save meta data on a SQL server
+             
         self.model.save('../KerasModels/'+t_stamp+f'__{loss}_{val_loss}.hdf5')        
         
 # ================================================================================================

@@ -27,11 +27,12 @@ class cMAPSS:
                  win_len   = 21, 
                  p_order   = 3, 
                  threshold = 1e-5, 
-                 s_rep     = 2,    #Stagered Repetition
-                 s_len     = 60,   #Unit - Cycle 
-                 pca_var   = 0.90,
+                 s_rep     = 3,    #Stagered Repetition
+                 s_len     = 40,   #Unit - Cycle 
+                 pca_var   = 0.97,
                  val_split = 0.4,
-                 use_gen   = False):
+                 epsilon   = 1e-5,
+                 use_gen   = False):   #TODO Automatic use_gen detection
         
         self.win_len   = win_len
         self.p_order   = p_order
@@ -41,6 +42,7 @@ class cMAPSS:
         self.pca_var   = pca_var
         self.val_split = val_split
         self.use_gen   = use_gen
+        self.epsilon      = epsilon
     
     def savgol(self, signal):
     
@@ -85,18 +87,18 @@ class cMAPSS:
                                  train_data.shape[1]),
                                  1000.0)
             
-        self.train_out = np.full((self.no_engines*self.s_rep),1e-2)
+        self.train_out = np.full((self.no_engines*self.s_rep), self.epsilon)
         
         for i in range(0, self.no_engines*self.s_rep, self.s_rep):
             
             e_id      = i/self.s_rep + 1
             cycle_len = train_data[engine_id == e_id, :].shape[0]
             temp      = train_data[engine_id == e_id, :]
-            self.train_in[i, :cycle_len, :] = temp
+            self.train_in[i, -cycle_len:, :] = temp
             
             for j in range(1, self.s_rep):
                 
-                self.train_in[j+i, :cycle_len-self.s_len*j, :] = temp[:-self.s_len*j,:]
+                self.train_in[j+i, -(cycle_len-self.s_len*j): , :] = temp[:-self.s_len*j,:]
                 self.train_out[j+i] = self.s_len*j
                 
         train_id = np.arange(self.no_engines*self.s_rep)
@@ -106,24 +108,32 @@ class cMAPSS:
         val_id   = train_id[ : tv_s]
         train_id = train_id[tv_s : ]
         
-        if self.mp == True :
+        if self.use_gen == True :
             
-            self.tin_npy  = './np_cache/tin_data.npy'
-            self.tout_npy = './np_cache/tout_data.npy'
-            self.vin_npy  = './np_cache/vin_data.npy'
-            self.vout_npy = './np_cache/vout_data.npy'
+            tin_npy  = './np_cache/tin_data.npy'
+            tout_npy = './np_cache/tout_data.npy'
+            vin_npy  = './np_cache/vin_data.npy'
+            vout_npy = './np_cache/vout_data.npy'
             
-            if os.path.isfile(self.tin_npy):
+            if os.path.isfile(tin_npy):
                 
-                os.remove(self.tin_npy)
-                os.remove(self.tout_npy)
-                os.remove(self.vin_npy)
-                os.remove(self.vout_npy)
+                os.remove(tin_npy)
+                os.remove(tout_npy)
+                os.remove(vin_npy)
+                os.remove(vout_npy)
             
-            np.save(self.tin_npy ,self.train_in [train_id,:,:])
-            np.save(self.tout_npy,self.train_out[train_id])
-            np.save(self.vin_npy ,self.train_in [val_id  ,:,:])
-            np.save(self.vout_npy,self.train_out[val_id])
+            np.save(tin_npy ,self.train_in [train_id,:,:])
+            np.save(tout_npy,self.train_out[train_id])
+            np.save(vin_npy ,self.train_in [val_id  ,:,:])
+            np.save(vout_npy,self.train_out[val_id])
+            
+            self.npy_files = {'tin_npy'  : './np_cache/tin_data.npy',
+                              'tout_npy' : './np_cache/tout_data.npy',
+                              'vin_npy'  : './np_cache/vin_data.npy',
+                              'vout_npy' : './np_cache/vout_data.npy'}
+            
+            del self.train_in
+            del self.train_out
                 
     def test_preprocess(self, test_data):
         

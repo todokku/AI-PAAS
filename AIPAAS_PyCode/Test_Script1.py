@@ -4,33 +4,33 @@ Created on Thu Oct 17 08:03:55 2019
 
 @author: tejas
 """
-
+#Create module run to send inputs into
 from Input      import cMAPSS as ci
 from Preprocess import cMAPSS as CP
-from Testing    import cMAPSS as ct
+import Config as cf
 
-import Training as tr
-
-
-ug = True
 ci.get_data(1)
 
-cp = CP(use_gen = True)
+cp = CP(**cf.sys_params,
+        **cf.preprocess_params)
+
 cp.train_preprocess(ci.Train_input)
 
+#%%
+
+from   Testing  import cMAPSS as ct
+import Training as tr
+
 lstm_ff = tr.LSTM_to_FF(cp.features,
-                        lstm_layer   = 3, 
-                        lstm_neurons = 300, 
-                        ff_layer     = 2, 
-                        ff_neurons   = 150,
-                        epochs       = 40,
-                        use_gen = ug)
-
+                        **cf.model_hparams,
+                        **cf.train_hparams,
+                        **cf.sys_params)
 lstm_ff.create_model()
-lstm_ff.train_model(cp.tin_npy,cp.tout_npy,cp.vin_npy,cp.vout_npy)
 
-#lstm_ff.train_model(train_in = cp.train_in, train_out = cp.train_out)
-
+if cf.sys_params['use_gen'] == True:
+    lstm_ff.train_model(**cp.npy_files)
+else:
+    lstm_ff.train_model(train_in = cp.train_in, train_out = cp.train_out)
 
 cp.test_preprocess(ci.Test_input)
 
