@@ -19,7 +19,6 @@ Created on Tue Sep 17 12:19:06 2019
 import scipy.signal          as scipy_sig
 import numpy                 as np
 import sklearn.decomposition as skl_d
-import os
 
 class cMAPSS:
 
@@ -40,8 +39,7 @@ class cMAPSS:
         self.s_len     = s_len
         self.pca_var   = pca_var
         self.val_split = val_split
-        self.use_gen   = use_gen
-        self.epsilon      = epsilon
+        self.epsilon   = epsilon
     
     def savgol(self, signal):
     
@@ -100,19 +98,23 @@ class cMAPSS:
                 self.train_in[j+i, -(cycle_len-self.s_len*j): , :] = temp[:-self.s_len*j,:]
                 self.train_out[j+i] = self.s_len*j
                 
-    def test_preprocess(self, test_data):
+    def test_preprocess(self, test_data, feat = 0):
+        
+        try:
+            features = self.features
+        except AttributeError:
+            if feat == 0:
+                raise Exception("Please run train_data first")
+                features = feat
+            
         
         engine_id, test_data = self.basic_preprocess(test_data)
         
-        try:
-            pca = skl_d.PCA(n_components = self.features)
-        except AttributeError: 
-            raise Exception("Please run train_data first")
-        
+        pca = skl_d.PCA(n_components = features)
         pca.fit(test_data)
         
-        if(pca.explained_variance_ratio_.sum() < self.pca_var*0.98):
-            raise Exception("Ummmm.... There is an issue with the pca thing, call - 289 923 9291")
+        if(pca.explained_variance_ratio_.sum() < self.pca_var):
+            print(f'PCA test variation is less than the train variation. It is - {self.pca_var}')
         
         test_data   = pca.transform(test_data)
         
@@ -128,47 +130,47 @@ class cMAPSS:
             temp      = test_data[engine_id == i+1, :]
             self.test_in[i, :cycle_len, :] = temp
             
-    def generator_preprocess(self):
-        
-        train_id = np.arange(self.no_engines*self.s_rep)
-        np.random.shuffle(train_id)
-        
-        tv_s     = int(np.ceil(self.val_split*self.no_engines*self.s_rep))
-        val_id   = train_id[ : tv_s]
-        train_id = train_id[tv_s : ]
-        
-        tin_npy  = './np_cache/tin_data.npy'
-        tout_npy = './np_cache/tout_data.npy'
-        vin_npy  = './np_cache/vin_data.npy'
-        vout_npy = './np_cache/vout_data.npy'
-            
-        if os.path.isfile(tin_npy):
-                
-            os.remove(tin_npy)
-            os.remove(tout_npy)
-            os.remove(vin_npy)
-            os.remove(vout_npy)
-            
-        np.save(tin_npy ,self.train_in [train_id,:,:])
-        np.save(tout_npy,self.train_out[train_id])
-        np.save(vin_npy ,self.train_in [val_id  ,:,:])
-        np.save(vout_npy,self.train_out[val_id])
-            
-        self.npy_files = {'tin_npy'  : './np_cache/tin_data.npy',
-                          'tout_npy' : './np_cache/tout_data.npy',
-                          'vin_npy'  : './np_cache/vin_data.npy',
-                          'vout_npy' : './np_cache/vout_data.npy'}
-            
-        del self.train_in
-        del self.train_out
+#    def generator_preprocess(self):
+#        
+#        train_id = np.arange(self.no_engines*self.s_rep)
+#        np.random.shuffle(train_id)
+#        
+#        tv_s     = int(np.ceil(self.val_split*self.no_engines*self.s_rep))
+#        val_id   = train_id[ : tv_s]
+#        train_id = train_id[tv_s : ]
+#        
+#        tin_npy  = './np_cache/tin_data.npy'
+#        tout_npy = './np_cache/tout_data.npy'
+#        vin_npy  = './np_cache/vin_data.npy'
+#        vout_npy = './np_cache/vout_data.npy'
+#            
+#        if os.path.isfile(tin_npy):
+#                
+#            os.remove(tin_npy)
+#            os.remove(tout_npy)
+#            os.remove(vin_npy)
+#            os.remove(vout_npy)
+#            
+#        np.save(tin_npy ,self.train_in [train_id,:,:])
+#        np.save(tout_npy,self.train_out[train_id])
+#        np.save(vin_npy ,self.train_in [val_id  ,:,:])
+#        np.save(vout_npy,self.train_out[val_id])
+#            
+#        self.npy_files = {'tin_npy'  : './np_cache/tin_data.npy',
+#                          'tout_npy' : './np_cache/tout_data.npy',
+#                          'vin_npy'  : './np_cache/vin_data.npy',
+#                          'vout_npy' : './np_cache/vout_data.npy'}
+#            
+#        del self.train_in
+#        del self.train_out
             
   
-if __name__ == '__main__':
-    
-    from Input import cMAPSS as ci
-    
-    ci.get_data(1)
-    pp1 = cMAPSS()
-    pp1.train_preprocess(ci.Train_input)
-    pp1.test_preprocess(ci.Test_input)
+#if __name__ == '__main__':
+#    
+#    from Input import cMAPSS as ci
+#    
+#    ci.get_data(1)
+#    pp1 = cMAPSS()
+#    pp1.train_preprocess(ci.Train_input)
+#    pp1.test_preprocess(ci.Test_input)
 

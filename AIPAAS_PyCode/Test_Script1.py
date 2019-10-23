@@ -13,27 +13,25 @@ ci.set_datapath('C:/Users/Tejas/Desktop/Tejas/engine-dataset/')
 
 ci.get_data(1)
 
-cp = CP(**cf.sys_params_p,
-        **cf.preprocess_params)
+cp = CP(**cf.preprocess_params)
 
 cp.train_preprocess(ci.Train_input)
 
 #%%
 
-from   Testing  import cMAPSS as ct
 import Training as tr
 
 lstm_ff = tr.LSTM_to_FF(cp.features,
-                        **cf.model_hparams,
-                        **cf.train_hparams,
-                        **cf.sys_params_t)
+                        **cf.train_params)
 lstm_ff.create_model()
 
-if cf.sys_params_t['use_gen'] == True:
-    lstm_ff.train_model(**cp.npy_files)
-else:
-    lstm_ff.train_model(train_in = cp.train_in, train_out = cp.train_out)
+lstm_ff.train_model(train_in = cp.train_in, train_out = cp.train_out)
 
-cp.test_preprocess(ci.Test_input)
+lstm_ff.history_plot()
 
-ct.get_score(lstm_ff.model, cp.test_in, ci.RUL_input)
+
+#cp.test_preprocess(ci.Test_input)
+#
+#ct.get_score(lstm_ff.model, cp.test_in, ci.RUL_input)
+
+

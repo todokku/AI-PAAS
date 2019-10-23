@@ -16,11 +16,16 @@ Created on Tue Sep 17 12:19:06 2019
 # =============================================================================
 
 
-import numpy as np
+import numpy      as np
+import tensorflow as tf
 
-def read_model():
-    pass
 
+
+def read_model(pathname):
+
+    model = tf.keras.models.load_model(pathname)
+    
+    return model
 
 class cMAPSS:
     
