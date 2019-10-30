@@ -11,11 +11,13 @@ Created on Tue Sep 17 12:19:06 2019
 """
 
 # =================================================================================================
-# # Always use s_rep>1 to give non similar train_out values
+# Preprocessing Module!
 # =================================================================================================
 
-#Libraries       This module needs optimising , use iterators
-#uSe single module config files
+# TODO        This module needs optimising , use iterators
+
+#Libraries
+
 import scipy.signal          as scipy_sig
 import numpy                 as np
 import sklearn.decomposition as skl_d
@@ -26,16 +28,16 @@ class cMAPSS:
                  win_len   = 21, 
                  p_order   = 3, 
                  threshold = 1e-5, 
-                 s_rep     = 3,    #Stagered Repetition
-                 s_len     = 40,   #Unit - Cycle 
+                 s_per     = 30,    #Stagered Percentage
+                 s_len     = 5,     #Length of Stagger // Unit - Cycle 
                  pca_var   = 0.97,
                  val_split = 0.4,
-                 epsilon   = 1e-5):   #TODO Automatic use_gen detection
+                 epsilon   = 1e-5):
         
         self.win_len   = win_len
         self.p_order   = p_order
         self.threshold = threshold
-        self.s_rep     = s_rep
+        self.s_per     = s_per
         self.s_len     = s_len
         self.pca_var   = pca_var
         self.val_split = val_split
@@ -78,17 +80,20 @@ class cMAPSS:
         
         print(f'\nNumber of extracted features are {self.features}')
         
-        #preparing data for the LSTM
-        self.train_in  = np.full((self.no_engines*self.s_rep, 
-                                 self.max_cycles, 
-                                 train_data.shape[1]),
-                                 1000.0)
-            
-        self.train_out = np.full((self.no_engines*self.s_rep), self.epsilon)
+        s_rep = 4
         
-        for i in range(0, self.no_engines*self.s_rep, self.s_rep):
+        
+        #preparing data for the LSTM
+        self.train_in  = np.full((no_engine_ins, 
+                                  self.max_cycles, 
+                                  train_data.shape[1]),
+                                  1000.0)
             
-            e_id      = i/self.s_rep + 1
+        self.train_out = np.full((self.no_engines*s_rep), self.epsilon)
+        
+        for i in range(0, self.no_engines*s_rep, s_rep):
+            
+            e_id      = i/s_rep + 1
             cycle_len = train_data[engine_id == e_id, :].shape[0]
             temp      = train_data[engine_id == e_id, :]
             self.train_in[i, -cycle_len:, :] = temp

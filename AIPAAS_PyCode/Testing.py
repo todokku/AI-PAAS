@@ -42,8 +42,6 @@ class cMAPSS:
         cls.rmse = (d**2)
         cls.rmse = (cls.rmse.mean())**0.5
         
-        
-        #test this after multiprocessing and gpu is done
         d[d>=0]  = np.exp(d[d>=0]/10) - 1
         d[d<0]   = np.exp(-(d[d<0]/13)) - 1
         
