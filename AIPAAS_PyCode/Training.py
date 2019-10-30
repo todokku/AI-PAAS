@@ -87,7 +87,7 @@ class LSTM_to_FF:
         optimizer = tf.keras.optimizers.RMSprop
               
         self.model.compile(loss='mse',
-                           optimizer='RMSprop')
+                           optimizer = optimizer )
         
         print(self.model.summary())
         

@@ -14,7 +14,7 @@ Created on Tue Sep 17 12:19:06 2019
 # Preprocessing Module!
 # =================================================================================================
 
-# TODO        This module needs optimising , use iterators
+# TODO        This module needs optimising , use np.apply over axis
 
 #Libraries
 
@@ -60,28 +60,34 @@ class cMAPSS:
 
         data_variance   = input_data.var()
         input_data      = input_data.loc[:, data_variance > self.threshold]
+        
+        cycle_len = np.full(self.no_engines,0)
     
         for i in range(1,self.no_engines+1):
         
             input_data.loc[engine_id == i,:] = input_data.loc[engine_id == i,:].apply(self.savgol)
+            cycle_len[i-1] = len(engine_id[engine_id == i])
             
         #Normalising after data has been filtered
         input_data = input_data.apply(lambda x: (x-x.mean())/x.std())
                 
-        return engine_id, input_data
+        return cycle_len, engine_id, input_data
     
     def train_preprocess(self, train_data):
         
-        engine_id, train_data = self.basic_preprocess(train_data)
+        cycle_len, engine_id, train_data = self.basic_preprocess(train_data)
                 
         pca           = skl_d.PCA(n_components = self.pca_var, svd_solver ='full')
         train_data    = pca.fit_transform(train_data)
         self.features = pca.n_components_
         
         print(f'\nNumber of extracted features are {self.features}')
+            
+        no_ins = np.round(cycle_len*self.s_per/100)
+        no_ins = np.round(no_ins/5)
+        no_ins = no_ins.astype(int)
         
-        s_rep = 4
-        
+        no_engine_ins = no_ins.sum()
         
         #preparing data for the LSTM
         self.train_in  = np.full((no_engine_ins, 
@@ -89,19 +95,19 @@ class cMAPSS:
                                   train_data.shape[1]),
                                   1000.0)
             
-        self.train_out = np.full((self.no_engines*s_rep), self.epsilon)
+        self.train_out = np.full((no_engine_ins), self.epsilon)
         
-        for i in range(0, self.no_engines*s_rep, s_rep):
+        for i in range(self.no_engines):
             
-            e_id      = i/s_rep + 1
-            cycle_len = train_data[engine_id == e_id, :].shape[0]
-            temp      = train_data[engine_id == e_id, :]
-            self.train_in[i, -cycle_len:, :] = temp
+            c_len = cycle_len[i]
+            temp  = train_data[engine_id == i+1, :]
+            self.train_in[i, -c_len:, :] = temp
             
-            for j in range(1, self.s_rep):
+            for j in range(1, no_ins[i]):
                 
-                self.train_in[j+i, -(cycle_len-self.s_len*j): , :] = temp[:-self.s_len*j,:]
-                self.train_out[j+i] = self.s_len*j
+                self.train_in[i+j, -c_len+j*self.s_len:, :] = temp[:-j*self.s_len,:]
+                self.train_out[i+j] = j*self.s_len
+            
                 
     def test_preprocess(self, test_data, feat = 0):
         
@@ -110,15 +116,16 @@ class cMAPSS:
         except AttributeError:
             if feat == 0:
                 raise Exception("Please run train_data first")
+            else:
                 features = feat
             
         
-        engine_id, test_data = self.basic_preprocess(test_data)
+        cycle_len, engine_id, test_data = self.basic_preprocess(test_data)
         
         pca = skl_d.PCA(n_components = features)
         pca.fit(test_data)
         
-        if(pca.explained_variance_ratio_.sum() < self.pca_var):
+        if(round(pca.explained_variance_ratio_.sum(),2) < round(self.pca_var,2)):
             print(f'PCA test variation is less than the train variation. It is - {self.pca_var}')
         
         test_data   = pca.transform(test_data)
@@ -131,10 +138,11 @@ class cMAPSS:
             
         for i in range(self.no_engines):
             
-            cycle_len = test_data[engine_id == i+1, :].shape[0]
-            temp      = test_data[engine_id == i+1, :]
-            self.test_in[i, :cycle_len, :] = temp
+            c_len = cycle_len[i]
+            temp  = test_data[engine_id == i+1, :]
+            self.test_in[i, :c_len, :] = temp
             
+          
 #    def generator_preprocess(self):
 #        
 #        train_id = np.arange(self.no_engines*self.s_rep)
@@ -170,12 +178,13 @@ class cMAPSS:
 #        del self.train_out
             
   
-#if __name__ == '__main__':
-#    
-#    from Input import cMAPSS as ci
-#    
-#    ci.get_data(1)
-#    pp1 = cMAPSS()
-#    pp1.train_preprocess(ci.Train_input)
-#    pp1.test_preprocess(ci.Test_input)
+if __name__ == '__main__':
+    
+    from Input import cMAPSS as ci
+    
+    ci.set_datapath('C:/Users/Tejas/Desktop/Tejas/engine-dataset/')
+    ci.get_data(1)
+    pp1 = cMAPSS()
+    pp1.train_preprocess(ci.Train_input)
+    pp1.test_preprocess(ci.Test_input)
 
