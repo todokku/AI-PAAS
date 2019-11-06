@@ -9,11 +9,11 @@ from Input      import cMAPSS as ci
 from Preprocess import cMAPSS as CP
 import Config as cf
 
-#ci.set_datapath('C:/Users/Tejas/Desktop/Tejas/engine-dataset/')
+ci.set_datapath('C:/Users/Tejas/Desktop/Tejas/engine-dataset/')
 
 ci.get_data(1)
 
-cp = CP(**cf.preprocess_params)
+cp = CP(**cf.prepros_params)
 
 cp.train_preprocess(ci.Train_input)
 
@@ -22,10 +22,11 @@ cp.train_preprocess(ci.Train_input)
 import Training as tr
 
 lstm_ff = tr.LSTM_to_FF(cp.features,
+                        run_id = 1,
                         **cf.train_params)
 lstm_ff.create_model()
 
-lstm_ff.train_model(train_in = cp.train_in, train_out = cp.train_out)
+lstm_ff.train_model(cp.train_in, cp.train_out)
 
 lstm_ff.history_plot()
 

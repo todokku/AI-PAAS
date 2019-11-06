@@ -18,24 +18,31 @@ Created on Sun Oct 20 13:40:25 2019
 
 sys_params = {'enable_checkp' : False}
 
-#Expose more params to imporve val anf train loss
+zero = {'epsilon' : 1e-7}
 
-preprocess_params = {'win_len'   : 21, 
-                     'p_order'   : 3, 
-                     'threshold' : 1e-5, 
-                     's_per'     : 35,    #Stagered Repetition
-                     's_len'     : 2,   #Unit - Cycle change to percentage of sequence
-                     'pca_var'   : 0.95,
-                     'epsilon'   : 1e-8}
+prepros_params = {'win_len'   : 21, 
+                  'p_order'   : 3, 
+                  'threshold' : 1e-5, 
+                  's_per'     : 35,    #Stagered Repetition
+                  's_len'     : 2,     #Unit - Cycle change to percentage of sequence
+                  'pca_var'   : 0.95,
+                  **zero}
     
 model_hparams = {'lstm_layer'   : 5, 
-                 'lstm_neurons' : 15, 
-                 'ff_layer'     : 1, 
-                 'ff_neurons'   : 5}
+                 'lstm_neurons' : [40,35,30,25,20],
+                 'ff_layer'     : 2, 
+                 'ff_neurons'   : [15,10]}
 
-train_hparams = {'val_split'  : 0.35,
-                 'epochs'     : 300,
-                 'batch_size' : 64}
+
+
+train_hparams = {'do_prob'    : 0.4,
+                 'l2'         : 0.001,
+                 'lr'         : 0.001,
+                 'rho'        : 0.8,
+                 'val_split'  : 0.35,
+                 'epochs'     : 1,
+                 'batch_size' : 64,
+                 **zero}
 
 train_params = {**sys_params,
                 **model_hparams,
@@ -43,5 +50,5 @@ train_params = {**sys_params,
 
 
 
-
+#TODO Change to JSON type input later
 

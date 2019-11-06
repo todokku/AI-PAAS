@@ -16,12 +16,13 @@ Created on Tue Sep 17 12:19:06 2019
 
 import tensorflow        as tf
 import matplotlib.pyplot as plt
-import datetime
+#import datetime
 
 class LSTM_to_FF:
         
     def __init__(self,
                  features,
+                 run_id,
                  lstm_layer   = 1, 
                  lstm_neurons = 100, 
                  ff_layer     = 1, 
@@ -29,8 +30,14 @@ class LSTM_to_FF:
                  epochs       = 10,
                  val_split    = 0.2,
                  batch_size   = 32,
+                 do_prob      = 0.4,   #Dropout Probability
+                 l2           = 0.001,
+                 lRELU_alpha  = 0.05,
+                 epsilon      = 1e-7,
+                 lr           = 0.001,
+                 rho          = 0.8,
                  enable_checkp = False):
-        
+# TODO add optimzer based params       
         self.lstm_layer = lstm_layer 
         self.ff_layer   = ff_layer
     
@@ -41,6 +48,15 @@ class LSTM_to_FF:
         self.epochs     = epochs 
         self.val_split  = val_split
         self.batch_size = batch_size
+        
+        self.do_prob = do_prob
+        self.l2      = l2
+        self.lr      = lr
+        self.rho     = rho
+        
+        self.lRELU_alpha = lRELU_alpha
+        self.epsilon     = epsilon
+        
 
         self.enable_checkp = enable_checkp
         
@@ -55,31 +71,33 @@ class LSTM_to_FF:
         
         for i in range(0, self.lstm_layer-1):
             #TODO add cuda lstm after testing normal lstm with gpu
-            self.model.add(tf.keras.layers.LSTM(self.lstm_neurons, return_sequences=True))
-            self.model.add(tf.keras.layers.Dropout(0.4))
-            self.model.add(tf.keras.layers.ActivityRegularization(l2=0.001))
+            self.model.add(tf.keras.layers.LSTM(self.lstm_neurons[i], return_sequences=True))
+            self.model.add(tf.keras.layers.Dropout(self.do_prob))
+            self.model.add(tf.keras.layers.ActivityRegularization(l2=self.l2))
             self.model.add(tf.keras.layers.BatchNormalization())
     
-        self.model.add(tf.keras.layers.LSTM(self.lstm_neurons))
-        self.model.add(tf.keras.layers.Dropout(0.4))
-        self.model.add(tf.keras.layers.ActivityRegularization(l2=0.001))
+        self.model.add(tf.keras.layers.LSTM(self.lstm_neurons[-1]))
+        self.model.add(tf.keras.layers.Dropout(self.do_prob))
+        self.model.add(tf.keras.layers.ActivityRegularization(l2=self.l2))
         self.model.add(tf.keras.layers.BatchNormalization())
         
         for i in range(0, self.ff_layer):
                
-            self.model.add(tf.keras.layers.Dense(self.ff_neurons))
-            self.model.add(tf.keras.layers.Dropout(0.4))
-            self.model.add(tf.keras.layers.ActivityRegularization(l2=0.001))
-            self.model.add(tf.keras.layers.LeakyReLU(alpha=0.05))
+            self.model.add(tf.keras.layers.Dense(self.ff_neurons[i]))
+            self.model.add(tf.keras.layers.Dropout(self.do_prob))
+            self.model.add(tf.keras.layers.ActivityRegularization(l2=self.l2))
+            self.model.add(tf.keras.layers.LeakyReLU(self.lRELU_alpha))
             self.model.add(tf.keras.layers.BatchNormalization())
        
         #Final Layer
         self.model.add(tf.keras.layers.Dense(1))
         
-        optimizer = tf.keras.optimizers.RMSprop()
+        optimizer = tf.keras.optimizers.RMSprop(learning_rate = self.lr,
+                                                rho           = self.rho,
+                                                epsilon       = self.epsilon)
               
         self.model.compile(loss='mse',
-                           optimizer = optimizer )
+                           optimizer = optimizer)
         
         print(self.model.summary())
         
@@ -89,8 +107,8 @@ class LSTM_to_FF:
                     train_in, 
                     train_out):
         
-        t_stamp = datetime.datetime.now()
-        t_stamp = t_stamp.strftime('%d_%b_%y__%H_%M')
+#        t_stamp = datetime.datetime.now()
+#        t_stamp = t_stamp.strftime('%d_%b_%y__%H_%M')
         
         #Callbacks
         callbacks = []
@@ -111,12 +129,11 @@ class LSTM_to_FF:
                                 shuffle=True,
                                 callbacks = callbacks)
         
-        loss     = int(round(self.h.history['loss'][-1]))
-        val_loss = int(round(self.h.history['val_loss'][-1]))
+        self.loss     = int(round(self.h.history['loss'][-1]))
+        self.val_loss = int(round(self.h.history['val_loss'][-1]))
         
-        #TODO Save meta data on a SQL server
-             
-        self.model.save('../KerasModels/'+t_stamp+f'__{loss}_{val_loss}.hdf5')        
+        #find different way to save model
+        self.model.save('../KerasModels/'+ self.run_id)
         
 # ================================================================================================
 
