@@ -45,6 +45,7 @@ class LSTM_to_FF:
         self.ff_neurons   = ff_neurons
         
         self.features   = features
+        self.run_id     = run_id
         self.epochs     = epochs 
         self.val_split  = val_split
         self.batch_size = batch_size
