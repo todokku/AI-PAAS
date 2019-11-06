@@ -28,7 +28,7 @@ class cMAPSS:
                  win_len   = 21, 
                  p_order   = 3, 
                  threshold = 1e-5, 
-                 s_per     = 30,    #Stagered Percentage
+                 s_per     = 35,    #Stagered Percentage
                  s_len     = 5,     #Length of Stagger // Unit - Cycle 
                  pca_var   = 0.97,
                  val_split = 0.4,
@@ -83,11 +83,14 @@ class cMAPSS:
         
         print(f'\nNumber of extracted features are {self.features}')
             
-        no_ins = np.round(cycle_len*self.s_per/100)
-        no_ins = np.round(no_ins/5)
-        no_ins = no_ins.astype(int)
+        self.no_ins = np.round(cycle_len*self.s_per/100)
+        self.no_ins = np.round(self.no_ins/5)
+        self.no_ins = self.no_ins.astype(int)
         
-        no_engine_ins = no_ins.sum()
+        first_ins = np.append(0, self.no_ins)
+        first_ins = first_ins.cumsum()
+        
+        no_engine_ins = self.no_ins.sum()
         
         #preparing data for the LSTM
         self.train_in  = np.full((no_engine_ins, 
@@ -101,12 +104,12 @@ class cMAPSS:
             
             c_len = cycle_len[i]
             temp  = train_data[engine_id == i+1, :]
-            self.train_in[i, -c_len:, :] = temp
+            self.train_in[first_ins[i], -c_len:, :] = temp
             
-            for j in range(1, no_ins[i]):
+            for j in range(1, self.no_ins[i]):
                 
-                self.train_in[i+j, -c_len+j*self.s_len:, :] = temp[:-j*self.s_len,:]
-                self.train_out[i+j] = j*self.s_len
+                self.train_in [first_ins[i]+j, -c_len:-j*self.s_len, :] = temp[:-j*self.s_len,:]
+                self.train_out[first_ins[i]+j] = j*self.s_len
             
                 
     def test_preprocess(self, test_data, feat = 0):
@@ -118,8 +121,7 @@ class cMAPSS:
                 raise Exception("Please run train_data first")
             else:
                 features = feat
-            
-        
+
         cycle_len, engine_id, test_data = self.basic_preprocess(test_data)
         
         pca = skl_d.PCA(n_components = features)
@@ -143,46 +145,11 @@ class cMAPSS:
             self.test_in[i, :c_len, :] = temp
             
           
-#    def generator_preprocess(self):
-#        
-#        train_id = np.arange(self.no_engines*self.s_rep)
-#        np.random.shuffle(train_id)
-#        
-#        tv_s     = int(np.ceil(self.val_split*self.no_engines*self.s_rep))
-#        val_id   = train_id[ : tv_s]
-#        train_id = train_id[tv_s : ]
-#        
-#        tin_npy  = './np_cache/tin_data.npy'
-#        tout_npy = './np_cache/tout_data.npy'
-#        vin_npy  = './np_cache/vin_data.npy'
-#        vout_npy = './np_cache/vout_data.npy'
-#            
-#        if os.path.isfile(tin_npy):
-#                
-#            os.remove(tin_npy)
-#            os.remove(tout_npy)
-#            os.remove(vin_npy)
-#            os.remove(vout_npy)
-#            
-#        np.save(tin_npy ,self.train_in [train_id,:,:])
-#        np.save(tout_npy,self.train_out[train_id])
-#        np.save(vin_npy ,self.train_in [val_id  ,:,:])
-#        np.save(vout_npy,self.train_out[val_id])
-#            
-#        self.npy_files = {'tin_npy'  : './np_cache/tin_data.npy',
-#                          'tout_npy' : './np_cache/tout_data.npy',
-#                          'vin_npy'  : './np_cache/vin_data.npy',
-#                          'vout_npy' : './np_cache/vout_data.npy'}
-#            
-#        del self.train_in
-#        del self.train_out
-            
-  
 if __name__ == '__main__':
     
     from Input import cMAPSS as ci
     
-    ci.set_datapath('C:/Users/Tejas/Desktop/Tejas/engine-dataset/')
+#    ci.set_datapath('C:/Users/Tejas/Desktop/Tejas/engine-dataset/')
     ci.get_data(1)
     pp1 = cMAPSS()
     pp1.train_preprocess(ci.Train_input)

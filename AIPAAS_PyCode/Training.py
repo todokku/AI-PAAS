@@ -17,7 +17,6 @@ Created on Tue Sep 17 12:19:06 2019
 import tensorflow        as tf
 import matplotlib.pyplot as plt
 import datetime
-import os
 
 class LSTM_to_FF:
         
@@ -30,9 +29,6 @@ class LSTM_to_FF:
                  epochs       = 10,
                  val_split    = 0.2,
                  batch_size   = 32,
-                 workers      = 1,
-                 multi_process = False,
-                 use_gen       = False,
                  enable_checkp = False):
         
         self.lstm_layer = lstm_layer 
@@ -46,16 +42,12 @@ class LSTM_to_FF:
         self.val_split  = val_split
         self.batch_size = batch_size
 
-        self.use_gen       = use_gen
         self.enable_checkp = enable_checkp
-        self.workers       = workers
-        self.multi_process = multi_process
         
 # ================================================================================================
     
     def create_model(self):
         
-        #TODO add batch normalization
         self.model = tf.keras.models.Sequential()
         
         self.model.add(tf.keras.layers.Masking(mask_value = 1000.0 ,
@@ -84,7 +76,7 @@ class LSTM_to_FF:
         #Final Layer
         self.model.add(tf.keras.layers.Dense(1))
         
-        optimizer = tf.keras.optimizers.RMSprop
+        optimizer = tf.keras.optimizers.RMSprop()
               
         self.model.compile(loss='mse',
                            optimizer = optimizer )
@@ -103,14 +95,14 @@ class LSTM_to_FF:
         #Callbacks
         callbacks = []
 
-        if self.enable_checkp == True:
-            
-            path = './KerasModels/'+t_stamp
-            os.mkdir(path)
-            callbacks.append(tf.keras.callbacks.ModelCheckpoint(path + f'__{loss}_{val_loss}__{epoch}.hdf5',
-                                                                'val_loss',
-                                                                save_freq = 10*shape[0])) #change this
-  
+#        if self.enable_checkp == True:
+#            
+#            path = './KerasModels/'+t_stamp
+#            os.mkdir(path)
+#            callbacks.append(tf.keras.callbacks.ModelCheckpoint(path + f'__{loss}_{val_loss}__{epoch}.hdf5',
+#                                                                'val_loss',
+#                                                                save_freq = 10*shape[0])) #change this
+#  
         self.h = self.model.fit(train_in, 
                                 train_out, 
                                 epochs = self.epochs,
@@ -141,37 +133,6 @@ class LSTM_to_FF:
 # ================================================================================================== 
 # ==================================================================================================
         
-#class DataGenerator(tf.keras.utils.Sequence):
-#    
-#    def __init__(self, in_npy, out_npy, batch_size): 
-#        
-#        self.input_data  = np.load(in_npy,  mmap_mode = 'r')     #input output w.r.t the final model
-#        self.output_data = np.load(out_npy, mmap_mode = 'r') 
-#        self.batch_size  = batch_size
-#        self.batch_no    = int(np.ceil(self.input_data.shape[0] / self.batch_size))
-#
-#    def __len__(self):
-#        return self.batch_no
-#
-#    def __getitem__(self, index):
-#        
-#        if index == self.batch_no-1:
-#            
-#            X = np.copy(self.input_data[index*self.batch_size: , : , : ])
-#            y = np.copy(self.output_data[index*self.batch_size: ])
-#            
-#            return X,y
-#        
-#        else:
-#            X = np.copy(self.input_data[index*self.batch_size:(index+1)*self.batch_size , : , : ])
-#            y = np.copy(self.output_data[index*self.batch_size: (index+1)*self.batch_size])
-#            
-#            return X, y
-#        
-#    def on_epoch_end(self):
-#        
-#       pass
-#   
 
  
   

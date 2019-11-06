@@ -23,19 +23,19 @@ sys_params = {'enable_checkp' : False}
 preprocess_params = {'win_len'   : 21, 
                      'p_order'   : 3, 
                      'threshold' : 1e-5, 
-                     's_rep'     : 10,    #Stagered Repetition
-                     's_len'     : 11,   #Unit - Cycle change to percentage of sequence
+                     's_per'     : 35,    #Stagered Repetition
+                     's_len'     : 2,   #Unit - Cycle change to percentage of sequence
                      'pca_var'   : 0.95,
                      'epsilon'   : 1e-8}
     
-model_hparams = {'lstm_layer'   : 6, 
-                 'lstm_neurons' : 50, 
-                 'ff_layer'     : 0, 
-                 'ff_neurons'   : 30}
+model_hparams = {'lstm_layer'   : 5, 
+                 'lstm_neurons' : 15, 
+                 'ff_layer'     : 1, 
+                 'ff_neurons'   : 5}
 
-train_hparams = {'val_split'  : 0.4,
+train_hparams = {'val_split'  : 0.35,
                  'epochs'     : 300,
-                 'batch_size' : 32}
+                 'batch_size' : 64}
 
 train_params = {**sys_params,
                 **model_hparams,
