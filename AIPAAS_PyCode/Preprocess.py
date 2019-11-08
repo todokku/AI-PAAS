@@ -31,7 +31,7 @@ class cMAPSS:
                  s_len     = 5,     #Length of Stagger // Unit - Cycle 
                  pca_var   = 0.97,
                  val_split = 0.4,
-                 epsilon   = 1e-7):
+                 epsilon   = 1e-5):
         
         self.win_len   = win_len
         self.p_order   = p_order
@@ -48,6 +48,9 @@ class cMAPSS:
                                              self.p_order, 
                                              mode='nearest')
         return smooth_sig
+    
+    def clustering(self):
+        pass
 
     def basic_preprocess(self, input_data):
         
@@ -59,7 +62,9 @@ class cMAPSS:
         data_variance   = input_data.var()
         input_data      = input_data.loc[:, data_variance > self.epsilon]
         
-        #clusetering
+        if ('Altitude' in input_data) or ('Mach Number' in input_data) or ('TRA' in input_data) :
+            
+            self.clustering()
         
         cycle_len = np.full(self.no_engines,0)
         for i in range(1,self.no_engines+1):
@@ -107,9 +112,10 @@ class cMAPSS:
             
             for j in range(1, self.no_ins[i]):
                 
-                self.train_in [first_ins[i]+j, -c_len:-j*self.s_len, :] = temp[:-j*self.s_len,:]
+#                self.train_in [first_ins[i]+j, -c_len:-j*self.s_len, :] = temp[:-j*self.s_len,:]
+                
+                self.train_in [first_ins[i]+j, -c_len+j*self.s_len:, :] = temp[:-j*self.s_len,:]
                 self.train_out[first_ins[i]+j] = j*self.s_len
-            
                 
     def test_preprocess(self, test_data, feat = 0):
         
@@ -141,7 +147,7 @@ class cMAPSS:
             
             c_len = cycle_len[i]
             temp  = test_data[engine_id == i+1, :]
-            self.test_in[i, :c_len, :] = temp
+            self.test_in[i, -c_len:, :] = temp
             
           
 if __name__ == '__main__':

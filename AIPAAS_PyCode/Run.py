@@ -54,7 +54,7 @@ def cMAPPS(prepros_params,
         mf.log_metrics({'MSE_Train'      : lstm_ff.loss,
                         'MSE_Validation' : lstm_ff.val_loss})
     
-        mf_k.log_model(lstm_ff.model, '../MlflowModels')
+        mf_k.save_model(lstm_ff.model, '../MlflowModels')
         
         #Tags
     

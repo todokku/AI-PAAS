@@ -17,12 +17,12 @@ Created on Sun Oct 20 13:40:25 2019
 
 sys_params = {'enable_checkp' : False}
 
-zero = {'epsilon' : 1e-7}
+zero = {'epsilon' : 1e-5}
 
 prepros_params = {'win_len'   : 21, 
                   'p_order'   : 3, 
-                  's_per'     : 5,    #Stagered Repetition
-                  's_len'     : 20,     #Unit - Cycle change to percentage of sequence
+                  's_per'     : 35,    #Stagered Repetition
+                  's_len'     : 2,     #Unit - Cycle change to percentage of sequence
                   'pca_var'   : 0.95,
                   **zero}
     
@@ -38,7 +38,7 @@ train_hparams = {'do_prob'    : 0.4,
                  'lr'         : 0.001,
                  'rho'        : 0.8,
                  'val_split'  : 0.35,
-                 'epochs'     : 1,
+                 'epochs'     : 30,
                  'batch_size' : 64,
                  **zero}
 
