@@ -27,16 +27,14 @@ class cMAPSS:
     def __init__(self, 
                  win_len   = 21, 
                  p_order   = 3, 
-                 threshold = 1e-5, 
                  s_per     = 35,    #Stagered Percentage
                  s_len     = 5,     #Length of Stagger // Unit - Cycle 
                  pca_var   = 0.97,
                  val_split = 0.4,
-                 epsilon   = 1e-5):
+                 epsilon   = 1e-7):
         
         self.win_len   = win_len
         self.p_order   = p_order
-        self.threshold = threshold
         self.s_per     = s_per
         self.s_len     = s_len
         self.pca_var   = pca_var
@@ -59,10 +57,11 @@ class cMAPSS:
         input_data      = input_data.iloc[:,2:]
 
         data_variance   = input_data.var()
-        input_data      = input_data.loc[:, data_variance > self.threshold]
+        input_data      = input_data.loc[:, data_variance > self.epsilon]
+        
+        #clusetering
         
         cycle_len = np.full(self.no_engines,0)
-    
         for i in range(1,self.no_engines+1):
         
             input_data.loc[engine_id == i,:] = input_data.loc[engine_id == i,:].apply(self.savgol)

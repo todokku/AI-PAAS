@@ -16,13 +16,12 @@ Created on Tue Sep 17 12:19:06 2019
 
 import tensorflow        as tf
 import matplotlib.pyplot as plt
-#import datetime
+import datetime
 
 class LSTM_to_FF:
         
     def __init__(self,
                  features,
-                 run_id,
                  lstm_layer   = 1, 
                  lstm_neurons = 100, 
                  ff_layer     = 1, 
@@ -36,7 +35,8 @@ class LSTM_to_FF:
                  epsilon      = 1e-7,
                  lr           = 0.001,
                  rho          = 0.8,
-                 enable_checkp = False):
+                 enable_checkp = False,
+                 tracking      = False):
 # TODO add optimzer based params       
         self.lstm_layer = lstm_layer 
         self.ff_layer   = ff_layer
@@ -45,7 +45,6 @@ class LSTM_to_FF:
         self.ff_neurons   = ff_neurons
         
         self.features   = features
-        self.run_id     = run_id
         self.epochs     = epochs 
         self.val_split  = val_split
         self.batch_size = batch_size
@@ -58,7 +57,7 @@ class LSTM_to_FF:
         self.lRELU_alpha = lRELU_alpha
         self.epsilon     = epsilon
         
-
+        self.tracking      = tracking
         self.enable_checkp = enable_checkp
         
 # ================================================================================================
@@ -108,13 +107,13 @@ class LSTM_to_FF:
                     train_in, 
                     train_out):
         
-#        t_stamp = datetime.datetime.now()
-#        t_stamp = t_stamp.strftime('%d_%b_%y__%H_%M')
+        t_stamp = datetime.datetime.now()
+        t_stamp = t_stamp.strftime('%d_%b_%y__%H_%M')
         
         #Callbacks
         callbacks = []
 
-#        if self.enable_checkp == True:
+#        if self.enable_checkp:
 #            
 #            path = './KerasModels/'+t_stamp
 #            os.mkdir(path)
@@ -133,8 +132,8 @@ class LSTM_to_FF:
         self.loss     = int(round(self.h.history['loss'][-1]))
         self.val_loss = int(round(self.h.history['val_loss'][-1]))
         
-        #find different way to save model
-        self.model.save('../KerasModels/'+ self.run_id)
+        if not(self.tracking):
+            self.model.save('../KerasModels/'+ t_stamp + f'_{self.loss}_{self.val_loss}.hdf5')
         
 # ================================================================================================
 

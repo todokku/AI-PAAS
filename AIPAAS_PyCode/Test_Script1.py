@@ -22,7 +22,7 @@ cp.train_preprocess(ci.Train_input)
 import Training as tr
 
 lstm_ff = tr.LSTM_to_FF(cp.features,
-                        run_id = 1,
+                        run_id = '1',
                         **cf.train_params)
 lstm_ff.create_model()
 

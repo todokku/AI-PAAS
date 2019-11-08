@@ -12,7 +12,6 @@ Created on Sun Oct 20 13:40:25 2019
 
 # ==================================================================================================
 # Change Hyperparams here or a module to accept list of hyperparams
-# TODO Needs impovement
 # ==================================================================================================
 
 
@@ -22,9 +21,8 @@ zero = {'epsilon' : 1e-7}
 
 prepros_params = {'win_len'   : 21, 
                   'p_order'   : 3, 
-                  'threshold' : 1e-5, 
-                  's_per'     : 35,    #Stagered Repetition
-                  's_len'     : 2,     #Unit - Cycle change to percentage of sequence
+                  's_per'     : 5,    #Stagered Repetition
+                  's_len'     : 20,     #Unit - Cycle change to percentage of sequence
                   'pca_var'   : 0.95,
                   **zero}
     

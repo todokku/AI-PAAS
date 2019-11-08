@@ -8,13 +8,16 @@ Created on Wed Oct 23 13:44:59 2019
     Tejas Janardhan
     AI-PAAS Phd Student
 """
-import mlflow   as mf
-import Training as tr
+import mlflow       as mf
+import mlflow.keras as mf_k
+import Training     as tr
+
+#import mlflow.entities as run_md
 
 def cMAPPS(prepros_params,
            train_params,
-           path = None,
-           dataset_no):
+           dataset_no,
+           path = None):
     
     from Input      import cMAPSS as ci
     from Preprocess import cMAPSS as CP
@@ -32,21 +35,26 @@ def cMAPPS(prepros_params,
              
         cp = CP(**prepros_params)
         cp.train_preprocess(ci.Train_input)
+        
+#        run_id = mf.active_run().info.run_id
 
         lstm_ff = tr.LSTM_to_FF(cp.features,
-                                run_id,
-                                **train_params)
+                                **train_params,
+                                tracking = True)
         lstm_ff.create_model()
-        lstm_ff.train_model(train_in = cp.train_in, train_out = cp.train_out)
+        
+        lstm_ff.train_model(cp.train_in, cp.train_out)
         
         mf.log_param('Features' , cp.features)
-        mf.log_params(prepos_params)
+        mf.log_params(prepros_params)
         
         del train_params['enable_checkp']
         
         mf.log_params(train_params)
         mf.log_metrics({'MSE_Train'      : lstm_ff.loss,
                         'MSE_Validation' : lstm_ff.val_loss})
+    
+        mf_k.log_model(lstm_ff.model, '../MlflowModels')
         
         #Tags
     
