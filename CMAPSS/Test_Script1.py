@@ -9,7 +9,7 @@ from Input      import cMAPSS as ci
 from Preprocess import cMAPSS as CP
 import Config as cf
 
-#ci.set_datapath('C:/Users/Tejas/Desktop/Tejas/engine-dataset/')
+ci.set_datapath('C:/Users/Tejas/Desktop/Tejas/engine-dataset/')
 
 ci.get_data(1)
 

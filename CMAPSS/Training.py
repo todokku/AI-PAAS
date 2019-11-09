@@ -36,7 +36,7 @@ class LSTM_to_FF:
                  lr           = 0.001,
                  rho          = 0.8,
                  enable_checkp = False,
-                 tracking      = False):
+                 run_id        = None):
 # TODO add optimzer based params       
         self.lstm_layer = lstm_layer 
         self.ff_layer   = ff_layer
@@ -57,8 +57,8 @@ class LSTM_to_FF:
         self.lRELU_alpha = lRELU_alpha
         self.epsilon     = epsilon
         
-        self.tracking      = tracking
         self.enable_checkp = enable_checkp
+        self.run_id        = run_id 
         
 # ================================================================================================
     
@@ -132,7 +132,9 @@ class LSTM_to_FF:
         self.loss     = int(round(self.h.history['loss'][-1]))
         self.val_loss = int(round(self.h.history['val_loss'][-1]))
         
-        if not(self.tracking):
+        if self.run_id != None:
+            self.model.save('../TrackedModels/' + self.run_id + '.hdf5')
+        else:
             self.model.save('../KerasModels/'+ t_stamp + f'_{self.loss}_{self.val_loss}.hdf5')
         
 # ================================================================================================

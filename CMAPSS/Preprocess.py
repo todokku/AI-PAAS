@@ -149,12 +149,14 @@ class cMAPSS:
             temp  = test_data[engine_id == i+1, :]
             self.test_in[i, -c_len:, :] = temp
             
+    #Create preprocess report card
+            
           
 if __name__ == '__main__':
     
     from Input import cMAPSS as ci
     
-#    ci.set_datapath('C:/Users/Tejas/Desktop/Tejas/engine-dataset/')
+    ci.set_datapath('C:/Users/Tejas/Desktop/Tejas/engine-dataset/')
     ci.get_data(1)
     pp1 = cMAPSS()
     pp1.train_preprocess(ci.Train_input)

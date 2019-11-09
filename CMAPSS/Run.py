@@ -9,8 +9,7 @@ Created on Wed Oct 23 13:44:59 2019
     AI-PAAS Phd Student
 """
 import mlflow       as mf
-import mlflow.keras as mf_k
-import Training     as tr
+
 
 #import mlflow.entities as run_md
 
@@ -19,8 +18,10 @@ def cMAPPS(prepros_params,
            dataset_no,
            path = None):
     
-    from Input      import cMAPSS as ci
-    from Preprocess import cMAPSS as CP
+    from   Input      import cMAPSS as ci
+    from   Preprocess import cMAPSS as CP
+    from   Testing    import cMAPSS as ct 
+    import Training                 as tr
     
     with mf.start_run():
     
@@ -36,11 +37,11 @@ def cMAPPS(prepros_params,
         cp = CP(**prepros_params)
         cp.train_preprocess(ci.Train_input)
         
-#        run_id = mf.active_run().info.run_id
+        run_id = mf.active_run().info.run_id
 
         lstm_ff = tr.LSTM_to_FF(cp.features,
                                 **train_params,
-                                tracking = True)
+                                run_id = run_id)
         lstm_ff.create_model()
         
         lstm_ff.train_model(cp.train_in, cp.train_out)
@@ -52,9 +53,23 @@ def cMAPPS(prepros_params,
         
         mf.log_params(train_params)
         mf.log_metrics({'MSE_Train'      : lstm_ff.loss,
-                        'MSE_Validation' : lstm_ff.val_loss})
+                        'MSE_Validation' : lstm_ff.val_loss,
+                        'Delta_MSE'      : lstm_ff.loss-lstm_ff.val_loss})
     
-        mf_k.save_model(lstm_ff.model, '../MlflowModels')
+        path = '../TrackedModels/' + run_id + '.hdf5'
+    
+        mf.log_artifact(path)
         
+                
         #Tags
-    
+        
+        mf.set_tags({'RMSE_Train'      : lstm_ff.loss**0.5,
+                     'RMSE_Validation' : lstm_ff.val_loss**0.5})
+       
+        cp.test_preprocess(ci.Test_input)
+        ct.get_score(lstm_ff.model, cp.test_in, ci.RUL_input)
+        
+        mf.log_metric({'Score'     : ct.s,
+                       'Test_RMSE' : ct.rmse})
+
+     
