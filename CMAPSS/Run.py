@@ -54,7 +54,7 @@ def cMAPPS(prepros_params,
         mf.log_params(train_params)
         mf.log_metrics({'MSE_Train'      : lstm_ff.loss,
                         'MSE_Validation' : lstm_ff.val_loss,
-                        'Delta_MSE'      : lstm_ff.loss-lstm_ff.val_loss})
+                        'Delta_MSE'      : abs(lstm_ff.loss-lstm_ff.val_loss)})
     
         path = '../TrackedModels/' + run_id + '.hdf5'
     

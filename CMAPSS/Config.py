@@ -21,9 +21,9 @@ zero = {'epsilon' : 1e-5}
 
 prepros_params = {'win_len'   : 21, 
                   'p_order'   : 3, 
-                  's_per'     : 50,    #Stagered Repetition
-                  's_len'     : 1,     #Unit - Cycle change to percentage of sequence
-                  'pca_var'   : 0.97,
+                  's_per'     : 75,    #Stagered Repetition
+                  's_len'     : 5,     #Unit - Cycle change to percentage of sequence
+                  'pca_var'   : 0.95,
                   **zero}
     
 model_hparams = {'lstm_layer'   : 10, 
@@ -38,7 +38,7 @@ train_hparams = {'do_prob'    : 0.4,
                  'lr'         : 0.001,
                  'rho'        : 0.8,
                  'val_split'  : 0.30,
-                 'epochs'     : 600,
+                 'epochs'     : 1,
                  'batch_size' : 128,
                  **zero}
 

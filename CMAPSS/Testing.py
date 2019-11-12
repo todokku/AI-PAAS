@@ -21,9 +21,9 @@ import tensorflow as tf
 
 
 
-def read_model(pathname):
+def read_model(path):
 
-    return tf.keras.models.load_model(pathname)
+    return tf.keras.models.load_model(path)
 
 class cMAPSS:
     
