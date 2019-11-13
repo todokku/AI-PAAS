@@ -127,7 +127,7 @@ predictions = predictions[indices]
 plt.figure()
 
 plt.xticks(np.arange(0, len(index), step=100))
-plt.plot(index, df['meantempm'], zorder=1)
+plt.scatter(index, df['meantempm'], zorder=1)
 
 
 plt.scatter(test_index, predictions, c = 'r', zorder=2)

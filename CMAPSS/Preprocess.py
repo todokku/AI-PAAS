@@ -14,8 +14,6 @@ Created on Tue Sep 17 12:19:06 2019
 # Preprocessing Module!
 # =================================================================================================
 
-# TODO        This module needs optimising , use np.apply over axis
-
 #Libraries
 
 import scipy.signal          as scipy_sig
@@ -27,7 +25,7 @@ class cMAPSS:
     def __init__(self, 
                  win_len   = 21, 
                  p_order   = 3, 
-                 std_fac   = -0.6,    #Std factor. Recommended to choose value from -1 to 0
+                 std_fac   = -0.5,    #Std factor. Recommended to choose value from -1 to 0
                  s_len     = 2,       #Length of Stagger // Unit - Cycle 
                  pca_var   = 0.97,
                  val_split = 0.4,
@@ -64,6 +62,7 @@ class cMAPSS:
         if self._isTrain:
             self.train_variance = self._input_data.var()
             self._input_data    = self._input_data.loc[:, self.train_variance > self.epsilon]
+            self.get_fcycles()
         else:
             self._input_data = self._input_data.loc[:, self.train_variance > self.epsilon]
         
@@ -74,7 +73,7 @@ class cMAPSS:
             
             self.clustering()
             
-        self.get_fcycles()
+        
         
         for i in range(1,self.no_engines+1):
         
@@ -119,7 +118,7 @@ class cMAPSS:
                     features = self._force_feat
                     
             pca = skl_d.PCA(n_components = features)
-            pca.fit_transform(self._input_data)
+            self._input_data = pca.fit_transform(self._input_data)
         
             self.test_pca = round(pca.explained_variance_ratio_.sum(),2)
             if(self.test_pca < self.pca_var):
@@ -131,12 +130,12 @@ class cMAPSS:
         
         if self._isTrain:
             
-            no_ins = np.round(self.no_fcycles/self.s_len)   #fcycles are faulty cycles
-            no_ins = np.round(no_ins).astype(int).reshape(1,-1)
+            self._no_ins = np.round(self.no_fcycles/self.s_len)   #fcycles are faulty cycles
+            self._no_ins = np.round(self._no_ins).astype(int).reshape(1,-1)
                      
-            self.train_out = np.arange(0, self.s_len*no_ins.max(), self.s_len).reshape(-1,1)  #Generating train_out through vectorising
+            self.train_out = np.arange(0, self.s_len*self._no_ins.max(), self.s_len).reshape(-1,1)  #Generating train_out through vectorising
             self.train_out = np.repeat(self.train_out, self.no_engines, axis = 1)
-            self.train_out = np.concatenate((no_ins, self.train_out),   axis = 0)
+            self.train_out = np.concatenate((self._no_ins, self.train_out),   axis = 0)
             self.train_out = np.apply_along_axis(self._assign_dummy, 0, self.train_out)
             self.train_out = self.train_out[1:,:]
             self.train_out = self.train_out.flatten('F')
@@ -144,48 +143,42 @@ class cMAPSS:
             temp           = self.train_out[self.train_out != 1000]   #Removing Padded Values
             self.train_out = temp
             
-            temp = np.repeat(self.no_engines, self._max_cycles)
+            rem_cycles = np.repeat(self._max_cycles, self.no_engines)
+            rem_cycles = rem_cycles - self._cycle_len
             
-            rem_cycles = temp - self._cycle_len
+            index = np.arange(0, self._max_cycles*self.no_engines, self._max_cycles)
             
-            
-            
-            
-            
-            
-            
-            
-            
-            idices = self._cycles - 1
-            
-            cycles_lenlen = np.array([])
+            self.train_in = self._input_data
             
             for i in range(self.no_engines):
+
+                self.train_in = np.concatenate((self.train_in[:index[i] , :], 
+                                                np.full((rem_cycles[i],self.features), 1000), 
+                                                self.train_in[index[i]: , :]), 
+                                               axis = 0)  
                 
-                cycles_lenlen = np.append(cycles_lenlen, np.repeat(self._cycle_len[i], self._cycle_len[i]))
+            
+            
+            
+                
+            self.train_in = np.repeat(self.train_in[:, np.newaxis], self._no_ins.max()) 
                 
                 
+            self.train_in = self.train_in.reshape(self._max_cycles, self.features, -1)
             
             
             
-            
-            
-            self._input_data
-            
-            
-            
-            
-#        self._cycle_len = self._engine_id.value_counts().sort_index().to_numpy()
+#        self._cycle_len = self._e_id.value_counts().sort_index().to_numpy()
 #        
 #        if self._isTrain:
 #                       
-#            no_ins = np.round(self.no_fcycles/self.s_len)   #fcycles are faulty cycles
-#            no_ins = no_ins.astype(int)
+#            self._no_ins = np.round(self.no_fcycles/self.s_len)   #fcycles are faulty cycles
+#            self._no_ins = self._no_ins.astype(int)
 #            
-#            first_ins = np.append(0, no_ins)
+#            first_ins = np.append(0, self._no_ins)
 #            first_ins = first_ins.cumsum()        #First Instance of an engine (Used for indexing)
 #            
-#            total_ins = no_ins.sum()
+#            total_ins = self._no_ins.sum()
 #            
 #            #preparing data for the LSTM
 #            self.train_in  = np.full((total_ins, 
@@ -201,10 +194,10 @@ class cMAPSS:
 #            
 #            for i in range(self.no_engines):
 #                
-#                temp  = self._input_data[self._engine_id == i+1, :]
+#                temp  = self._input_data[self._e_id == i+1, :]
 #                self.train_in[first_ins[i], -self._cycle_len[i]:, :] = temp
 #                
-#                for j in range(1, no_ins[i]):
+#                for j in range(1, self._no_ins[i]):
 #                    
 #                    self.train_in [first_ins[i]+j, -self._cycle_len[i]+j*self.s_len:, :] = temp[:-j*self.s_len,:]
 #                    self.train_out[first_ins[i]+j] = j*self.s_len
@@ -218,7 +211,7 @@ class cMAPSS:
 #            for i in range(self.no_engines):
 #            
 #                c_len = self._cycle_len[i]
-#                temp  = self._input_data[self._engine_id == i+1, :]
+#                temp  = self._input_data[self._e_id == i+1, :]
 #                self.test_in[i, -c_len:, :] = temp
                 
 # ================================================================================================
@@ -239,8 +232,8 @@ class cMAPSS:
             
             return np.polyfit(x, y, 2)
         
-        fstart_mean     = np.full(self.no_engines, 0)
-        fstart_std = np.full(self.no_engines, 0)
+        fstart_mean = np.full(self.no_engines, 0)
+        fstart_std  = np.full(self.no_engines, 0)
         
         for i in range(self.no_engines):
     
