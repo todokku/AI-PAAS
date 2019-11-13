@@ -66,7 +66,10 @@ model = tf.keras.models.Sequential()
 model.add(tf.keras.layers.Dense(50, input_shape=(X_train.shape[1],)))
 model.add(tf.keras.layers.LeakyReLU(0.05))
 
-model.add(tf.keras.layers.Dense(50))
+model.add(tf.keras.layers.Dense(30))
+model.add(tf.keras.layers.LeakyReLU(0.05))
+
+model.add(tf.keras.layers.Dense(10))
 model.add(tf.keras.layers.LeakyReLU(0.05))
 
 model.add(tf.keras.layers.Dense(1))
@@ -81,7 +84,7 @@ print(model.summary())
 h = model.fit(X_train, 
               y_train,
               validation_data=(X_val, y_val),
-              epochs = 200,
+              epochs = 400,
               batch_size = 128)
 
 #%%
@@ -114,7 +117,7 @@ print("The Median Absolute Error: %.2f degrees Celcius" % median_absolute_error(
 
 
 
-
+#plt.plot()
 
 
 
