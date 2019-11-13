@@ -22,19 +22,19 @@ zero = {'epsilon' : 1e-5}
 prepros_params = {'win_len'   : 21, 
                   'p_order'   : 3, 
                   'std_fac'   :-0.5,    #Stagered Repetition
-                  's_len'     : 5,     #Unit - Cycle change to percentage of sequence
+                  's_len'     : 2,     #Unit - Cycle change to percentage of sequence
                   'pca_var'   : 0.99,
                   **zero}
     
-model_hparams = {'rnn_neurons' : [28,26,24,22,20,18,16,14,12,10],
+model_hparams = {'lstm_neurons' : [28,26,24,22,20,18,16,14,12,10],
                  'ff_neurons'   : [8,6]}
 
 train_hparams = {'do_prob'    : 0.4,
                  'l2'         : 0.001,
                  'lr'         : 0.001,
                  'rho'        : 0.8,
-                 'val_split'  : 0.28,
-                 'epochs'     : 300,
+                 'val_split'  : 0.30,
+                 'epochs'     : 500,
                  'batch_size' : 128,
                  **zero}
 
