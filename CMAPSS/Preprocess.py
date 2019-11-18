@@ -128,91 +128,96 @@ class cMAPSS:
   
     def RNN_prep(self):    #Preparing the data for any RNN
         
+        if self._isTrain:
+            
+            self._no_ins = np.round(self.no_fcycles/self.s_len)   #fcycles are faulty cycles
+            self._no_ins = np.round(self._no_ins).astype(int).reshape(1,-1)
+                     
+            self.train_out = np.arange(0, self.s_len*self._no_ins.max(), self.s_len).reshape(-1,1)  #Generating train_out through vectorising
+            self.train_out = np.repeat(self.train_out, self.no_engines, axis = 1)
+            self.train_out = np.concatenate((self._no_ins, self.train_out),   axis = 0)
+            self.train_out = np.apply_along_axis(self._assign_dummy, 0, self.train_out)
+            self.train_out = self.train_out[1:,:]
+            self.train_out = self.train_out.flatten('F')
+            
+            temp           = self.train_out[self.train_out != 1000]   #Removing Padded Values
+            self.train_out = temp
+            
+            rem_cycles = np.repeat(self._max_cycles, self.no_engines)
+            rem_cycles = rem_cycles - self._cycle_len
+            
+            index = np.arange(0, self._max_cycles*self.no_engines, self._max_cycles)
+            
+            self.train_in = self._input_data
+            
+            for i in range(self.no_engines):
+
+                self.train_in = np.concatenate((self.train_in[:index[i] , :], 
+                                                np.full((rem_cycles[i],self.features), 1000), 
+                                                self.train_in[index[i]: , :]), 
+                                               axis = 0)  
+                
+            
+            
+            
+                
+            self.train_in = np.repeat(self.train_in[np.newaxis, :, :], self._no_ins.max(), axis = 0) 
+            
+            self.train_in = self.train_in(-1, self.features, self._max_cycles)
+            
+            temp = np.arange(self._np_ins.max())
+            
+#            def stagger
+            
+            self.train_in = self.train_in.reshape(self._max_cycles, self.features, -1)
+            
+            
+            
+#        self._cycle_len = self._e_id.value_counts().sort_index().to_numpy()
+#        
 #        if self._isTrain:
-#            
+#                       
 #            self._no_ins = np.round(self.no_fcycles/self.s_len)   #fcycles are faulty cycles
-#            self._no_ins = np.round(self._no_ins).astype(int).reshape(1,-1)
-#                     
-#            self.train_out = np.arange(0, self.s_len*self._no_ins.max(), self.s_len).reshape(-1,1)  #Generating train_out through vectorising
-#            self.train_out = np.repeat(self.train_out, self.no_engines, axis = 1)
-#            self.train_out = np.concatenate((self._no_ins, self.train_out),   axis = 0)
-#            self.train_out = np.apply_along_axis(self._assign_dummy, 0, self.train_out)
-#            self.train_out = self.train_out[1:,:]
-#            self.train_out = self.train_out.flatten('F')
+#            self._no_ins = self._no_ins.astype(int)
 #            
-#            temp           = self.train_out[self.train_out != 1000]   #Removing Padded Values
-#            self.train_out = temp
+#            first_ins = np.append(0, self._no_ins)
+#            first_ins = first_ins.cumsum()        #First Instance of an engine (Used for indexing)
 #            
-#            rem_cycles = np.repeat(self._max_cycles, self.no_engines)
-#            rem_cycles = rem_cycles - self._cycle_len
+#            total_ins = self._no_ins.sum()
 #            
-#            index = np.arange(0, self._max_cycles*self.no_engines, self._max_cycles)
+#            #preparing data for the LSTM
+#            self.train_in  = np.full((total_ins, 
+#                                      self._max_cycles, 
+#                                      self._input_data.shape[1]),
+#                                      1000.0)
+#                
+#            self.train_out = np.full(total_ins, self.epsilon)
 #            
-#            self.train_in = self._input_data
+#            
+#            
+#            
 #            
 #            for i in range(self.no_engines):
-#
-#                self.train_in = np.concatenate((self.train_in[:index[i] , :], 
-#                                                np.full((rem_cycles[i],self.features), 1000), 
-#                                                self.train_in[index[i]: , :]), 
-#                                               axis = 0)  
 #                
-#            
-#            
-#            
+#                temp  = self._input_data[self._e_id == i+1, :]
+#                self.train_in[first_ins[i], -self._cycle_len[i]:, :] = temp
 #                
-#            self.train_in = np.repeat(self.train_in[:, np.newaxis], self._no_ins.max()) 
-#                
-#                
-#            self.train_in = self.train_in.reshape(self._max_cycles, self.features, -1)
+#                for j in range(1, self._no_ins[i]):
+#                    
+#                    self.train_in [first_ins[i]+j, -self._cycle_len[i]+j*self.s_len:, :] = temp[:-j*self.s_len,:]
+#                    self.train_out[first_ins[i]+j] = j*self.s_len
+#                    
+#        else:
+#            self.test_in  = np.full((self.no_engines, 
+#                                     self._max_cycles, 
+#                                     self._input_data.shape[1]),
+#                                     1000.0)
 #            
+#            for i in range(self.no_engines):
 #            
-            
-        self._cycle_len = self._e_id.value_counts().sort_index().to_numpy()
-        
-        if self._isTrain:
-                       
-            self._no_ins = np.round(self.no_fcycles/self.s_len)   #fcycles are faulty cycles
-            self._no_ins = self._no_ins.astype(int)
-            
-            first_ins = np.append(0, self._no_ins)
-            first_ins = first_ins.cumsum()        #First Instance of an engine (Used for indexing)
-            
-            total_ins = self._no_ins.sum()
-            
-            #preparing data for the LSTM
-            self.train_in  = np.full((total_ins, 
-                                      self._max_cycles, 
-                                      self._input_data.shape[1]),
-                                      1000.0)
-                
-            self.train_out = np.full(total_ins, self.epsilon)
-            
-            
-            
-            
-            
-            for i in range(self.no_engines):
-                
-                temp  = self._input_data[self._e_id == i+1, :]
-                self.train_in[first_ins[i], -self._cycle_len[i]:, :] = temp
-                
-                for j in range(1, self._no_ins[i]):
-                    
-                    self.train_in [first_ins[i]+j, -self._cycle_len[i]+j*self.s_len:, :] = temp[:-j*self.s_len,:]
-                    self.train_out[first_ins[i]+j] = j*self.s_len
-                    
-        else:
-            self.test_in  = np.full((self.no_engines, 
-                                     self._max_cycles, 
-                                     self._input_data.shape[1]),
-                                     1000.0)
-            
-            for i in range(self.no_engines):
-            
-                c_len = self._cycle_len[i]
-                temp  = self._input_data[self._e_id == i+1, :]
-                self.test_in[i, -c_len:, :] = temp
+#                c_len = self._cycle_len[i]
+#                temp  = self._input_data[self._e_id == i+1, :]
+#                self.test_in[i, -c_len:, :] = temp
                 
 # ================================================================================================
 

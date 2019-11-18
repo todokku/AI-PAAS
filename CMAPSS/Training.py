@@ -12,6 +12,7 @@ Created on Tue Sep 17 12:19:06 2019
 
 # =========================================================================================
 # Choose an appropriate model to create and Train
+# TODO Massive improvement needed - add callbacks 
 # =========================================================================================
 
 import tensorflow        as tf
