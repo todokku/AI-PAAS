@@ -14,16 +14,16 @@ import Config
 from Preprocess import cMAPSS as C
 from Input import cMAPSS as i
 
-model = test.read_model('../KerasModels/23_Oct_19__14_04__158_108.hdf5')
+model = test.read_model('../KerasModels/17_Nov_19__03_08_4826_6100')
 
 print(model.summary())
 
-i.set_datapath('C:/Users/Tejas/Desktop/Tejas/engine-dataset/')
+#i.set_datapath('C:/Users/Tejas/Desktop/Tejas/engine-dataset/')
 
 i.get_data(1)
 
 c = C(**Config.prepros_params)
 
-c.test_preprocess(i.Test_input,2)
+c.preprocess(i.Test_input, isTrain = False)
 
 test.cMAPSS.get_score(model, c.test_in, i.RUL_input)
