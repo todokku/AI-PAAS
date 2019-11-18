@@ -70,4 +70,55 @@ class DataGenerator(tf.keras.utils.Sequence):
     def on_epoch_end(self):
         
        pass
+   
+    
+    
+    
+#preprocess vectorization
+       
+
+def _assign_dummy(self, x):
+            
+    x[x[0]:] = 1000
+            
+    return x
+        
+if self._isTrain:
+    
+    self._no_ins = np.round(self.no_fcycles/self.s_len)   #fcycles are faulty cycles
+    self._no_ins = np.round(self._no_ins).astype(int).reshape(1,-1)
+             
+    self.train_out = np.arange(0, self.s_len*self._no_ins.max(), self.s_len).reshape(-1,1)  #Generating train_out through vectorising
+    self.train_out = np.repeat(self.train_out, self.no_engines, axis = 1)
+    self.train_out = np.concatenate((self._no_ins, self.train_out),   axis = 0)
+    self.train_out = np.apply_along_axis(self._assign_dummy, 0, self.train_out)
+    self.train_out = self.train_out[1:,:]
+    self.train_out = self.train_out.flatten('F')
+    
+    temp           = self.train_out[self.train_out != 1000]   #Removing Padded Values
+    self.train_out = temp
+    
+    rem_cycles = np.repeat(self._max_cycles, self.no_engines)
+    rem_cycles = rem_cycles - self._cycle_len
+    
+    index = np.arange(0, self._max_cycles*self.no_engines, self._max_cycles)
+    
+    self.train_in = self._input_data
+    
+    for i in range(self.no_engines):
+
+        self.train_in = np.concatenate((self.train_in[:index[i] , :], 
+                                        np.full((rem_cycles[i],self.features), 1000), 
+                                        self.train_in[index[i]: , :]), 
+                                       axis = 0)  
+        
+    self.train_in = np.repeat(self.train_in[np.newaxis, :, :], self._no_ins.max(), axis = 0) 
+    
+    self.train_in = self.train_in(-1, self.features, self._max_cycles)
+    
+    temp = np.arange(self._np_ins.max())
+    
+    def stagger
+    
+    self.train_in = self.train_in.reshape(self._max_cycles, self.features, -1)
  

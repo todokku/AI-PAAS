@@ -171,7 +171,7 @@ class RNN_to_FF:
         t_stamp = t_stamp.strftime('%d_%b_%y__%H_%M')
         
         callbacks = [tf.keras.callbacks.EarlyStopping(monitor  = 'val_loss', 
-                                                      patience = 10,
+                                                      patience = 20,
                                                       restore_best_weights = True)]
   
         self.h = self.model.fit(train_in, 
@@ -181,6 +181,8 @@ class RNN_to_FF:
                                 batch_size       = self.batch_size,
                                 shuffle          = True,
                                 callbacks        = callbacks)
+        
+        #TODO 
         
         self.loss     = int(round(self.h.history['loss'][-1]))
         self.val_loss = int(round(self.h.history['val_loss'][-1]))
@@ -193,9 +195,7 @@ class RNN_to_FF:
             with open(self.model_dir + '/' + self.run_id + '.json', "w") as json_file:
                 json_file.write(model_json)
                    
-#            self.model.save(self.model_dir + '/' + self.run_id + '.hdf5')
-        
-        
+
         else:
             
             self.model.save_weights(self.model_dir + t_stamp + f'_{self.loss}_{self.val_loss}' + '.h5')
@@ -203,9 +203,8 @@ class RNN_to_FF:
             
             with open(self.model_dir + t_stamp + f'_{self.loss}_{self.val_loss}' + '.json', "w") as json_file:
                 json_file.write(model_json)
-            
-#            self.model.save(self.model_dir + t_stamp + f'_{self.loss}_{self.val_loss}.hdf5')
-        
+      
+       
 # ================================================================================================
 
     def history_plot(self):
