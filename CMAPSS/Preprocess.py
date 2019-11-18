@@ -29,7 +29,7 @@ class cMAPSS:
                  s_len     = 2,       #Length of Stagger // Unit - Cycle 
                  pca_var   = 0.97,
                  val_split = 0.4,
-                 epsilon   = 1e-5):
+                 threshold = 1e-5):
         
         self.win_len   = win_len
         self.p_order   = p_order
@@ -37,7 +37,7 @@ class cMAPSS:
         self.s_len     = s_len
         self.pca_var   = pca_var
         self.val_split = val_split
-        self.epsilon   = epsilon
+        self.threshold = threshold
         
 # ================================================================================================
 
@@ -61,10 +61,10 @@ class cMAPSS:
         
         if self._isTrain:
             self.train_variance = self._input_data.var()
-            self._input_data    = self._input_data.loc[:, self.train_variance > self.epsilon]
+            self._input_data    = self._input_data.loc[:, self.train_variance > self.threshold]
             self.get_fcycles()
         else:
-            self._input_data = self._input_data.loc[:, self.train_variance > self.epsilon]
+            self._input_data = self._input_data.loc[:, self.train_variance > self.threshold]
         
         if ('Altitude' in 
             self._input_data) or ('Mach Number' in 

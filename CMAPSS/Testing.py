@@ -21,9 +21,18 @@ import tensorflow as tf
 
 
 
-def read_model(path):
+def read_model(path): #path is the common name between the two files
 
-    return tf.keras.models.load_model(path)
+    with open(path + '.json', 'r') as json_file:
+        model_json = json_file.read()
+        
+    model = tf.keras.models.model_from_json(model_json)
+    model.load_weights(path + ".h5")
+    
+    return model
+    
+    
+#    return tf.keras.models.load_model(path)
 
 class cMAPSS:
     
@@ -31,7 +40,7 @@ class cMAPSS:
     def get_score(cls, model, test_in, true_rul):
         
         cls.true_rul = true_rul.to_numpy()
-        cls.est_rul = model.predict(test_in, batch_size=None)  
+        cls.est_rul  = model.predict(test_in, batch_size=None)  
                 
         #Calculating S score from the NASA paper, variables can be found there
         
@@ -42,8 +51,7 @@ class cMAPSS:
         
         d[d>=0]  = np.exp(d[d>=0]/10) - 1
         d[d<0]   = np.exp(-(d[d<0]/13)) - 1
-        
-        
+
         cls.s    = int(np.round(d.sum()))
         
         print(f'The score is - {cls.s} and rmse is - {cls.rmse} !!! Cry or Celebrate')
