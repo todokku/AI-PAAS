@@ -22,26 +22,18 @@ cp.preprocess(ci.Train_input)
 import Training as tr
 from   Testing import cMAPSS as ct
 
-#lstm_ff = tr.LSTM_to_FF(cp.features,
-#                        **cf.train_params)
-#lstm_ff.create_model()
-#
-#lstm_ff.train_model(cp.train_in, cp.train_out)
-#
-#lstm_ff.history_plot()
-
-rnn_ff = tr.RNN_to_FF(cp.features,
+Model = tr.RNN_to_FF(cp.features,
                       **cf.train_params)
-rnn_ff.create_model()
+Model.create_model()
 
-rnn_ff.train_model(cp.train_in, cp.train_out)
+Model.train_model(cp.train_in, cp.train_out)
 
-rnn_ff.history_plot()
+Model.history_plot()
 
 
 cp.preprocess(ci.Test_input,
               isTrain = False)
 
-ct.get_score(rnn_ff.model, cp.test_in, ci.RUL_input)
+ct.get_score(Model.model, cp.test_in, ci.RUL_input)
 
 

@@ -22,14 +22,14 @@ prepros_params = {'win_len'   : 21,
                   'thresold'  : 1e-5}
     
 model_hparams = {'rnn_type'    : 'simpleRNN',
-                 'rnn_neurons' : [200,200],
-                 'ff_neurons'  : []}
+                 'rnn_neurons' : [100,100,100],
+                 'ff_neurons'  : [100]}
 
-train_hparams = {'dropout'     : 0.4,
-                 'rec_dropout' : 0.4,
-                 'l2'          : 0.01,
+train_hparams = {'dropout'     : 0.3,
+                 'rec_dropout' : 0.3,
+                 'l2'          : 0.001,
                  'lr'          : 0.004,
-                 'beta'        : [0.9,0.999],
+                 'beta'        : [0.99,0.9999],
                  'val_split'   : 0.30,
                  'epochs'      : 300,
                  'batch_size'  : 128,

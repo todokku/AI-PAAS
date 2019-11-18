@@ -53,7 +53,7 @@ class cMAPSS:
         
         self.no_engines  = self._input_data.iloc[-1,0]
         self._max_cycles = self._input_data['Cycles'].max()
-        self._e_id  = self._input_data.iloc[:,0]
+        self._e_id       = self._input_data.iloc[:,0]
         self._cycles     = self._input_data.iloc[:,1]
         self._input_data = self._input_data.iloc[:,2:]
         self._cycle_len  = self._e_id.value_counts().sort_index().to_numpy()

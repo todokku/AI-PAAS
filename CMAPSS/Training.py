@@ -71,79 +71,66 @@ class RNN_to_FF:
         
         for i in range(0, len(self.rnn_neurons)-1):
             
-            l2_reg = tf.keras.regularizers.l2(l=self.l2)
-          
             self.model.add(tf.keras.layers.SimpleRNN(self.rnn_neurons[i],
                                                      dropout               = self.dropout,
                                                      recurrent_dropout     = self.rec_dropout,
-                                                     kernel_regularizer    = l2_reg,
-                                                     bias_regularizer      = l2_reg,
-                                                     recurrent_regularizer = l2_reg,
+                                                     kernel_regularizer    = self._l2_reg,
+                                                     bias_regularizer      = self._l2_reg,
+                                                     recurrent_regularizer = self._l2_reg,
                                                      return_sequences=True))
             self.model.add(tf.keras.layers.LayerNormalization())
     
-        self.model.add(tf.keras.layers.SimpleRNN(self.rnn_neurons[i],
+        self.model.add(tf.keras.layers.SimpleRNN(self.rnn_neurons[-1],
                                                  dropout               = self.dropout,
                                                  recurrent_dropout     = self.rec_dropout,
-                                                 kernel_regularizer    = l2_reg,
-                                                 bias_regularizer      = l2_reg,
-                                                 recurrent_regularizer = l2_reg))
+                                                 kernel_regularizer    = self._l2_reg,
+                                                 bias_regularizer      = self._l2_reg,
+                                                 recurrent_regularizer = self._l2_reg))
         self.model.add(tf.keras.layers.LayerNormalization())
         
 # ==================================================================================================        
         
     def create_LSTM(self):
-        
-        l2_reg = tf.keras.regularizers.l2(l=self.l2)
-        
+
         for i in range(0, len(self.rnn_neurons)-1):
             
             self.model.add(tf.keras.layers.LSTM(self.rnn_neurons[i],
                                                 dropout               = self.dropout,
                                                 recurrent_dropout     = self.rec_dropout,
-                                                kernel_regularizer    = l2_reg,
-                                                bias_regularizer      = l2_reg,
-                                                recurrent_regularizer = l2_reg,
+                                                kernel_regularizer    = self._l2_reg,
+                                                bias_regularizer      = self._l2_reg,
+                                                recurrent_regularizer = self._l2_reg,
                                                 return_sequences=True))
             self.model.add(tf.keras.layers.LayerNormalization())
     
-        self.model.add(tf.keras.layers.LSTM(self.rnn_neurons[i],
+        self.model.add(tf.keras.layers.LSTM(self.rnn_neurons[-1],
                                             dropout               = self.dropout,
                                             recurrent_dropout     = self.rec_dropout,
-                                            kernel_regularizer    = l2_reg,
-                                            bias_regularizer      = l2_reg,
-                                            recurrent_regularizer = l2_reg))
+                                            kernel_regularizer    = self._l2_reg,
+                                            bias_regularizer      = self._l2_reg,
+                                            recurrent_regularizer = self._l2_reg))
         self.model.add(tf.keras.layers.LayerNormalization())
         
 # ==================================================================================================        
     
     def create_model(self):
         
-        self.model = tf.keras.models.Sequential(tf.keras.layers.Masking(mask_value = 1000.0,
-                                                                        input_shape=(None,self.features)))
-   
+        self.model   = tf.keras.models.Sequential(tf.keras.layers.Masking(mask_value = 1000.0,
+                                                                          input_shape=(None,self.features)))
+        self._l2_reg = tf.keras.regularizers.l2(l=self.l2)
         
         if self.rnn_type == 'simpleRNN':
-            
             self.create_simpleRNN()
-            
         elif self.rnn_type == 'LSTM':
-            
             self.create_LSTM()
-            
         else:
-            
             raise Exception('Invalid RNN Type, choose between simpleRNN or LSTM')
-            
-        l2_reg = tf.keras.regularizers.l2(l=self.l2)
-        
+
         for i in range(0, len(self.ff_neurons)):
             
-            l2_reg = tf.keras.regularizers.l2(l=self.l2)
-            
             self.model.add(tf.keras.layers.Dense(self.ff_neurons[i],
-                                                 kernel_regularizer = l2_reg,
-                                                 bias_regularizer   = l2_reg))
+                                                 kernel_regularizer = self._l2_reg,
+                                                 bias_regularizer   = self._l2_reg))
             
             self.model.add(tf.keras.layers.LeakyReLU())
             self.model.add(tf.keras.layers.BatchNormalization())
@@ -182,8 +169,7 @@ class RNN_to_FF:
                                 shuffle          = True,
                                 callbacks        = callbacks)
         
-        #TODO 
-        
+        #TODO         
         self.loss     = int(round(self.h.history['loss'][-1]))
         self.val_loss = int(round(self.h.history['val_loss'][-1]))
         
@@ -194,17 +180,13 @@ class RNN_to_FF:
             
             with open(self.model_dir + '/' + self.run_id + '.json', "w") as json_file:
                 json_file.write(model_json)
-                   
-
-        else:
-            
+        else:            
             self.model.save_weights(self.model_dir + t_stamp + f'_{self.loss}_{self.val_loss}' + '.h5')
             model_json = self.model.to_json()
             
             with open(self.model_dir + t_stamp + f'_{self.loss}_{self.val_loss}' + '.json', "w") as json_file:
                 json_file.write(model_json)
-      
-       
+             
 # ================================================================================================
 
     def history_plot(self):
