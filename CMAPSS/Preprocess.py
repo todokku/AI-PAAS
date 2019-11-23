@@ -133,7 +133,7 @@ class cMAPSS:
         if self._isTrain:
                        
             self._no_ins = np.round(self.no_fcycles/self.s_len)   #fcycles are faulty cycles
-            self._no_ins = self._no_ins.astype(int)
+            self._no_ins = self._no_ins.astype(int) - 1           #the rul 0 is removed
             
             first_ins = np.append(0, self._no_ins)
             first_ins = first_ins.cumsum()        #First Instance of an engine (Used for indexing)
@@ -146,17 +146,17 @@ class cMAPSS:
                                       self._input_data.shape[1]),
                                       1000.0)
                 
-            self.train_out = np.full(total_ins, 0)
+            self.train_out = np.full(total_ins, self.s_len)
 
             for i in range(self.no_engines):
                 
                 temp  = self._input_data[self._e_id == i+1, :]
-                self.train_in[first_ins[i], -self._cycle_len[i]:, :] = temp
+                self.train_in[first_ins[i], -self._cycle_len[i]+self.s_len:, :] = temp[:-self.s_len, :]
                 
                 for j in range(1, self._no_ins[i]):
                     
-                    self.train_in [first_ins[i]+j, -self._cycle_len[i]+j*self.s_len:, :] = temp[:-j*self.s_len,:]
-                    self.train_out[first_ins[i]+j] = j*self.s_len
+                    self.train_in [first_ins[i]+j, -self._cycle_len[i]+(j+1)*self.s_len:, :] = temp[:-(j+1)*self.s_len,:]
+                    self.train_out[first_ins[i]+j] = (j+1)*self.s_len
                     
         else:
             self.test_in  = np.full((self.no_engines, 
@@ -229,7 +229,7 @@ if __name__ == '__main__':
     
     from Input import cMAPSS as ci
     
-    ci.set_datapath('C:/Users/Tejas/Desktop/Tejas/engine-dataset/')
+#    ci.set_datapath('C:/Users/Tejas/Desktop/Tejas/engine-dataset/')
     ci.get_data(1)
     pp1 = cMAPSS()
     pp1.preprocess(ci.Train_input)

@@ -8,6 +8,11 @@ Created on Wed Nov  6 22:46:40 2019
     Tejas Janardhan
     AI-PAAS Phd Student
 """
+
+# =================================================================================================
+# Hyper Parameter Tuning Algorithms
+# =================================================================================================
+
 import bayes_opt as bayesO
 
 class BayesOpt():

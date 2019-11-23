@@ -9,11 +9,12 @@ Created on Tue Sep 17 12:19:06 2019
     AI-PAAS Phd Student
 
 """
-#Libraries
-#%%
+# =================================================================================================
+# Used to provide input for CMAPSS
+# =================================================================================================
+
 import pandas as pd
 
-#Class not to be used to create instances
 class cMAPSS:
     
     @classmethod

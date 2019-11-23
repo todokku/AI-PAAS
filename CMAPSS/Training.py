@@ -12,7 +12,6 @@ Created on Tue Sep 17 12:19:06 2019
 
 # =========================================================================================
 # Choose an appropriate model to create and Train
-# TODO Massive improvement needed - add callbacks 
 # =========================================================================================
 
 import tensorflow        as tf
@@ -21,6 +20,7 @@ import datetime
 #class SimpleRNN_Model()
 
 # ================================================================================================== 
+#TODO Add constraints to the final layer, prevent the value from going below zero
 # ==================================================================================================
 
 class RNN_to_FF:
@@ -40,8 +40,9 @@ class RNN_to_FF:
                  epsilon      = 1e-7,
                  lr           = 0.001,
                  beta         = [0.9,0.999],
-                 model_dir     = '../KerasModels/',
-                 run_id        = None):
+                 model_dir      = '../KerasModels/',
+                 run_id         = None,
+                 early_stopping = True):
       
     
         self.rnn_type    = rnn_type
@@ -62,8 +63,9 @@ class RNN_to_FF:
         self.lRELU_alpha = lRELU_alpha
         self.epsilon     = epsilon
         
-        self.model_dir  = model_dir 
-        self.run_id     = run_id 
+        self.model_dir      = model_dir 
+        self.run_id         = run_id
+        self.early_stopping = True
         
 # ==================================================================================================
         
@@ -157,9 +159,13 @@ class RNN_to_FF:
         t_stamp = datetime.datetime.now()
         t_stamp = t_stamp.strftime('%d_%b_%y__%H_%M')
         
-        callbacks = [tf.keras.callbacks.EarlyStopping(monitor  = 'val_loss', 
-                                                      patience = 20,
-                                                      restore_best_weights = True)]
+        if self.early_stopping == True:
+            
+            callbacks = [tf.keras.callbacks.EarlyStopping(monitor  = 'val_loss', 
+                                                          patience = 50,
+                                                          restore_best_weights = True)]
+        else:
+            callbacks = []
   
         self.h = self.model.fit(train_in, 
                                 train_out, 
@@ -169,7 +175,7 @@ class RNN_to_FF:
                                 shuffle          = True,
                                 callbacks        = callbacks)
         
-        #TODO         
+        # TODO         
         self.loss     = int(round(self.h.history['loss'][-1]))
         self.val_loss = int(round(self.h.history['val_loss'][-1]))
         
