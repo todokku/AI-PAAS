@@ -17,10 +17,9 @@ Created on Tue Sep 17 12:19:06 2019
 import tensorflow        as tf
 import matplotlib.pyplot as plt
 import datetime
-#class SimpleRNN_Model()
 
 # ================================================================================================== 
-#TODO Add constraints to the final layer, prevent the value from going below zero
+#TODO change the cost function to a customn cost function
 # ==================================================================================================
 
 class RNN_to_FF:
@@ -65,7 +64,7 @@ class RNN_to_FF:
         
         self.model_dir      = model_dir 
         self.run_id         = run_id
-        self.early_stopping = True
+        self.early_stopping = early_stopping
         
 # ==================================================================================================
         

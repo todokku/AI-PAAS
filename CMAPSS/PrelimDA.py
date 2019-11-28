@@ -14,6 +14,8 @@ Created on Thu Nov 21 18:39:32 2019
 # Create plots for individual signals or list of engines
 # =================================================================================================
 
+import seaborn
+
 class cMAPSS:
     
     def __init__(self,

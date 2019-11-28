@@ -12,6 +12,8 @@ Created on Tue Sep 17 12:19:06 2019
 
 # =================================================================================================
 # Preprocessing Module!
+# TODO Vectorize the code!
+# TODO randomize improvemnts
 # =================================================================================================
 
 #Libraries
@@ -25,8 +27,8 @@ class cMAPSS:
     def __init__(self, 
                  win_len    = 21, 
                  p_order    = 3, 
-                 std_fac    = -0.5,    #Std factor. Recommended to choose value from -1 to 0
-                 s_len      = 2,       #Length of Stagger // Unit - Cycle 
+                 std_fac    = 0,    #Std factor. Recommended to choose value from -1 to 0
+                 s_len      = 2,    #Length of Stagger // Unit - Cycle 
                  pca_var    = 0.97,
                  val_split  = 0.4,
                  thresold   = 1e-5):
@@ -61,8 +63,7 @@ class cMAPSS:
         
         if self._isTrain:
             self.train_variance = self._input_data.var()
-            self._input_data    = self._input_data.loc[:, self.train_variance > self.thresold]
-            self.get_fcycles()
+            self._input_data    = self._input_data.loc[:, self.train_variance > self.thresold] 
         else:
             self._input_data = self._input_data.loc[:, self.train_variance > self.thresold]
         
@@ -70,15 +71,15 @@ class cMAPSS:
             self._input_data) or ('Mach Number' in 
                                   self._input_data) or ('TRA' in 
                                                          self._input_data) :
-            
             self.clustering()
             
-        
-        
         for i in range(1,self.no_engines+1):
         
             self._input_data.loc[self._e_id == i,:] = self._input_data.loc[self._e_id == i,:].apply(self._savgol)
-            
+        
+        if self._isTrain:
+            self.get_fcycles()   
+        
         self._input_data = self._input_data.apply(lambda x: (x-x.mean())/x.std())    
         self._input_data = self._input_data.to_numpy()
         
@@ -169,6 +170,16 @@ class cMAPSS:
                 c_len = self._cycle_len[i]
                 temp  = self._input_data[self._e_id == i+1, :]
                 self.test_in[i, -c_len:, :] = temp
+                
+                
+    #randomize in each instance
+        
+#        x = np.array([])
+#        
+#        for i in self._no_ins:
+#            
+#            x = x.append(np.random.shuffle(np.arange(i)))
+#        
                 
 # ================================================================================================
 
