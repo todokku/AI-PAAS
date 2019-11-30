@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-AI-PAAS ,Ryerson Univesity
+AIAS ,Ryerson Univesity
 
 Created on Tue Sep 17 12:19:06 2019
 
 @author: 
     Tejas Janardhan
-    AI-PAAS Phd Student
+    AIAS Phd Student
 
 """
 
@@ -17,10 +17,40 @@ Created on Tue Sep 17 12:19:06 2019
 import tensorflow        as tf
 import matplotlib.pyplot as plt
 import datetime
+import numpy             as np
 
-# ================================================================================================== 
-#TODO change the cost function to a customn cost function
-# ==================================================================================================
+class DataGenerator(tf.keras.utils.Sequence):
+
+    def __init__(self, input_data, output_data, batch_size): 
+        
+        self.input_data  = input_data     
+        self.output_data = output_data
+        self.batch_size  = batch_size
+        
+        self.indexes  = np.random.shuffle(np.arange(self.input_data.shape(1)))
+        self.batch_no = int(np.ceil(self.input_data.shape[0] / self.batch_size))
+    
+    def __len__(self):
+        return self.batch_no
+    
+    def __getitem__(self, index):
+        
+        if index == self.batch_no-1:
+            
+            x = self.input_data [self.indexes[index*self.batch_size:],:,:]
+            y = self.output_data[self.indexes[index*self.batch_size:]]
+            
+            return x,y
+        
+        else:
+            x = self.input_data [self.indexes[index*self.batch_size:(index+1)*self.batch_size],:,:]
+            y = self.output_data[self.indexes[index*self.batch_size:(index+1)*self.batch_size]]
+            
+            return x, y
+        
+    def on_epoch_end(self):
+        
+        np.random.shuffle(self.indexes)
 
 class RNN_to_FF:
         
@@ -30,7 +60,6 @@ class RNN_to_FF:
                  ff_neurons,
                  rnn_type     = 'simpleRNN',
                  epochs       = 10,
-                 val_split    = 0.2,
                  batch_size   = 32,
                  dropout      = 0.4,   #Dropout Probability
                  rec_dropout  = 0.2,
@@ -50,7 +79,6 @@ class RNN_to_FF:
         
         self.features   = features
         self.epochs     = epochs 
-        self.val_split  = val_split
         self.batch_size = batch_size
         
         self.dropout     = dropout
@@ -137,7 +165,8 @@ class RNN_to_FF:
             self.model.add(tf.keras.layers.BatchNormalization())
        
         #Final Layer
-        self.model.add(tf.keras.layers.Dense(1))
+        self.model.add(tf.keras.layers.Dense(1,
+                                             activation = 'softplus'))
         
         optimizer = tf.keras.optimizers.Adam(learning_rate = self.lr,
                                              beta_1        = self.beta[0],
@@ -153,7 +182,9 @@ class RNN_to_FF:
         
     def train_model(self,
                     train_in, 
-                    train_out):
+                    train_out,
+                    val_in,
+                    val_out):
         
         t_stamp = datetime.datetime.now()
         t_stamp = t_stamp.strftime('%d_%b_%y__%H_%M')
@@ -166,13 +197,12 @@ class RNN_to_FF:
         else:
             callbacks = []
   
-        self.h = self.model.fit(train_in, 
-                                train_out, 
-                                epochs           = self.epochs,
-                                validation_split = self.val_split,
-                                batch_size       = self.batch_size,
-                                shuffle          = True,
-                                callbacks        = callbacks)
+        self.h = self.model.fit_generator(train_in, 
+                                          train_out, 
+                                          epochs           = self.epochs,
+                                          validation_split = self.val_split,
+                                          batch_size       = self.batch_size,
+                                          callbacks        = callbacks)
         
         # TODO         
         self.loss     = int(round(self.h.history['loss'][-1]))

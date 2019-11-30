@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-AI-PAAS ,Ryerson Univesity
+AIAS ,Ryerson Univesity
 
 Created on Tue Sep 17 12:19:06 2019
 
@@ -13,7 +13,6 @@ Created on Tue Sep 17 12:19:06 2019
 # =================================================================================================
 # Preprocessing Module!
 # TODO Vectorize the code!
-# TODO randomize improvemnts
 # =================================================================================================
 
 #Libraries
@@ -28,9 +27,9 @@ class cMAPSS:
                  win_len    = 21, 
                  p_order    = 3, 
                  std_fac    = 0,    #Std factor. Recommended to choose value from -1 to 0
-                 s_len      = 2,    #Length of Stagger // Unit - Cycle 
+                 s_len      = 5,    #Length of Stagger // Unit - Cycle 
                  pca_var    = 0.97,
-                 val_split  = 0.4,
+                 val_split  = 0.3,
                  thresold   = 1e-5):
         
         self.win_len    = win_len
@@ -127,38 +126,79 @@ class cMAPSS:
             
 # ================================================================================================        
   
-    def RNN_prep(self):    #Preparing the data for any RNN
+    def RNN_prep(self):    #Preparing the data for any RNN Needs improvement
 
-        self._cycle_len = self._e_id.value_counts().sort_index().to_numpy()
-        
         if self._isTrain:
                        
             self._no_ins = np.round(self.no_fcycles/self.s_len)   #fcycles are faulty cycles
             self._no_ins = self._no_ins.astype(int) - 1           #the rul 0 is removed
+            self._no_ins = self._no_ins.reshape(-1,1)
             
-            first_ins = np.append(0, self._no_ins)
-            first_ins = first_ins.cumsum()        #First Instance of an engine (Used for indexing)
+            val_total_ins = np.round(self._no_ins*self.val_split).astype(int).sum()
+            train_total_ins = self._no_ins.sum() - val_total_ins
             
-            total_ins = self._no_ins.sum()
+            last_ins  = self._no_ins.cumsum()
+            first_ins = np.append(0, self._no_ins[:-1]).cumsum()
+           
+            val_no_ins    = np.round(self._no_ins*self.val_split).astype(int).reshape(-1)
+            val_last_ins  = val_no_ins.cumsum()
+            val_first_ins = np.append(0, val_no_ins[:-1]).cumsum()
+                        
+            train_no_ins = self._no_ins.reshape(-1) - val_no_ins
+            train_last_ins  = train_no_ins.cumsum()
+            train_first_ins = np.append(0, train_no_ins[:-1]).cumsum()
             
-            #preparing data for the LSTM
-            self.train_in  = np.full((total_ins, 
-                                      self._max_cycles, 
-                                      self._input_data.shape[1]),
-                                      1000.0)
+            outputs = np.arange(self.s_len, self.s_len*self._no_ins.max(), self.s_len).reshape(-1,1)  #Generating train_out through vectorising
+            outputs = np.repeat(outputs, self.no_engines, axis = 1)
+            outputs = np.concatenate((self._no_ins.T, outputs),   axis = 0)
+            outputs = np.apply_along_axis(self._assign_dummy, 0, outputs)
+            outputs = outputs[1:,:]
+            outputs = outputs.flatten('F')
+            temp    = outputs[outputs != 1000]   #Removing Padded Values
+            outputs = temp
+            
+            self.train_in = np.full((train_total_ins, 
+                                     self._max_cycles, 
+                                     self._input_data.shape[1]),
+                                     1000.0)
                 
-            self.train_out = np.full(total_ins, self.s_len)
-
-            for i in range(self.no_engines):
+            
+            self.val_in = np.full((val_total_ins, 
+                                   self._max_cycles, 
+                                   self._input_data.shape[1]),
+                                   1000.0)
                 
-                temp  = self._input_data[self._e_id == i+1, :]
-                self.train_in[first_ins[i], -self._cycle_len[i]+self.s_len:, :] = temp[:-self.s_len, :]
+            self.train_out = np.full(train_total_ins, 1000.0)
                 
-                for j in range(1, self._no_ins[i]):
+            self.val_out   = np.full(val_total_ins, 1000.0)
+            
+            for first,last,tins,vins,tfirst,tlast,vfirst,vlast,eng_cycle,i in zip(first_ins, 
+                                                                                  last_ins,
+                                                                                  train_no_ins,
+                                                                                  val_no_ins,
+                                                                                  train_first_ins,
+                                                                                  train_last_ins,
+                                                                                  val_first_ins,
+                                                                                  val_last_ins,
+                                                                                  self._cycle_len, 
+                                                                                  range(1, self.no_engines+1)):
+                
+                indexes = np.arange(first, last)
+                np.random.shuffle(indexes)
+                                    
+                temp = self._input_data[self._e_id == i, :]
+                
+                for ind, j in zip(indexes[vins:], range(tfirst, tlast)):
                     
-                    self.train_in [first_ins[i]+j, -self._cycle_len[i]+(j+1)*self.s_len:, :] = temp[:-(j+1)*self.s_len,:]
-                    self.train_out[first_ins[i]+j] = (j+1)*self.s_len
+                    self.train_in[j, :eng_cycle-(ind+1)*self.s_len, :] = temp[:-(ind+1)*self.s_len, :]
                     
+                for ind, j in zip(indexes[:vins], range(vfirst, vlast)):
+                    
+                    self.val_in  [j, :eng_cycle-(ind+1)*self.s_len, :] = temp[:-(ind+1)*self.s_len, :]
+                
+                self.train_out[np.arange(tfirst, tlast)] = outputs[indexes[vins:]]
+                self.val_out  [np.arange(vfirst, vlast)] = outputs[indexes[:vins]]
+        
         else:
             self.test_in  = np.full((self.no_engines, 
                                      self._max_cycles, 
@@ -170,17 +210,7 @@ class cMAPSS:
                 c_len = self._cycle_len[i]
                 temp  = self._input_data[self._e_id == i+1, :]
                 self.test_in[i, -c_len:, :] = temp
-                
-                
-    #randomize in each instance
-        
-#        x = np.array([])
-#        
-#        for i in self._no_ins:
-#            
-#            x = x.append(np.random.shuffle(np.arange(i)))
-#        
-                
+              
 # ================================================================================================
 
     def get_fcycles(self): #Provides an estimate for the number of faulty cycles in each engine
@@ -227,6 +257,14 @@ class cMAPSS:
     def clustering(self):
         pass
 
+# ================================================================================================
+        
+    def _assign_dummy(self, x):
+            
+        x[x[0]:] = 1000
+            
+        return x
+    
 # ================================================================================================
             
     def report_card(self):
