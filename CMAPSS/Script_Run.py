@@ -26,7 +26,7 @@ Model = tr.RNN_to_FF(cp.features,
                       **cf.train_params)
 Model.create_model()
 
-Model.train_model(cp.train_in, cp.train_out)
+Model.train_model(cp.train_in, cp.train_out, cp.val_in, cp.val_out)
 
 Model.history_plot()
 

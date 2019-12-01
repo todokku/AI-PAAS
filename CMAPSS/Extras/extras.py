@@ -85,19 +85,6 @@ def _assign_dummy(self, x):
         
 if self._isTrain:
     
-    self._no_ins = np.round(self.no_fcycles/self.s_len)   #fcycles are faulty cycles
-    self._no_ins = np.round(self._no_ins).astype(int).reshape(1,-1)
-             
-    self.train_out = np.arange(0, self.s_len*self._no_ins.max(), self.s_len).reshape(-1,1)  #Generating train_out through vectorising
-    self.train_out = np.repeat(self.train_out, self.no_engines, axis = 1)
-    self.train_out = np.concatenate((self._no_ins, self.train_out),   axis = 0)
-    self.train_out = np.apply_along_axis(self._assign_dummy, 0, self.train_out)
-    self.train_out = self.train_out[1:,:]
-    self.train_out = self.train_out.flatten('F')
-    
-    temp           = self.train_out[self.train_out != 1000]   #Removing Padded Values
-    self.train_out = temp
-    
     rem_cycles = np.repeat(self._max_cycles, self.no_engines)
     rem_cycles = rem_cycles - self._cycle_len
     

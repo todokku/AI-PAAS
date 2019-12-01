@@ -17,40 +17,6 @@ Created on Tue Sep 17 12:19:06 2019
 import tensorflow        as tf
 import matplotlib.pyplot as plt
 import datetime
-import numpy             as np
-
-class DataGenerator(tf.keras.utils.Sequence):
-
-    def __init__(self, input_data, output_data, batch_size): 
-        
-        self.input_data  = input_data     
-        self.output_data = output_data
-        self.batch_size  = batch_size
-        
-        self.indexes  = np.random.shuffle(np.arange(self.input_data.shape(1)))
-        self.batch_no = int(np.ceil(self.input_data.shape[0] / self.batch_size))
-    
-    def __len__(self):
-        return self.batch_no
-    
-    def __getitem__(self, index):
-        
-        if index == self.batch_no-1:
-            
-            x = self.input_data [self.indexes[index*self.batch_size:],:,:]
-            y = self.output_data[self.indexes[index*self.batch_size:]]
-            
-            return x,y
-        
-        else:
-            x = self.input_data [self.indexes[index*self.batch_size:(index+1)*self.batch_size],:,:]
-            y = self.output_data[self.indexes[index*self.batch_size:(index+1)*self.batch_size]]
-            
-            return x, y
-        
-    def on_epoch_end(self):
-        
-        np.random.shuffle(self.indexes)
 
 class RNN_to_FF:
         
@@ -196,15 +162,15 @@ class RNN_to_FF:
                                                           restore_best_weights = True)]
         else:
             callbacks = []
-  
-        self.h = self.model.fit_generator(train_in, 
-                                          train_out, 
-                                          epochs           = self.epochs,
-                                          validation_split = self.val_split,
-                                          batch_size       = self.batch_size,
-                                          callbacks        = callbacks)
+        #TODO use score as a cost function
         
-        # TODO         
+        self.h = self.model.fit(train_in,
+                                train_out,
+                                validation_data = (val_in, val_out),
+                                epochs          = self.epochs,
+                                shuffle         = True,
+                                callbacks       = callbacks)
+                
         self.loss     = int(round(self.h.history['loss'][-1]))
         self.val_loss = int(round(self.h.history['val_loss'][-1]))
         

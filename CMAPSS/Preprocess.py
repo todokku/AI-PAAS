@@ -6,7 +6,7 @@ Created on Tue Sep 17 12:19:06 2019
 
 @author: 
     Tejas Janardhan
-    AI-PAAS Phd Student
+    AIAS Phd Student
 
 """
 
@@ -27,7 +27,7 @@ class cMAPSS:
                  win_len    = 21, 
                  p_order    = 3, 
                  std_fac    = 0,    #Std factor. Recommended to choose value from -1 to 0
-                 s_len      = 5,    #Length of Stagger // Unit - Cycle 
+                 s_len      = 20,    #Length of Stagger // Unit - Cycle 
                  pca_var    = 0.97,
                  val_split  = 0.3,
                  thresold   = 1e-5):
@@ -134,11 +134,10 @@ class cMAPSS:
             self._no_ins = self._no_ins.astype(int) - 1           #the rul 0 is removed
             self._no_ins = self._no_ins.reshape(-1,1)
             
+            first_ins = np.append(0, self._no_ins[:-1]).cumsum()
+            
             val_total_ins = np.round(self._no_ins*self.val_split).astype(int).sum()
             train_total_ins = self._no_ins.sum() - val_total_ins
-            
-            last_ins  = self._no_ins.cumsum()
-            first_ins = np.append(0, self._no_ins[:-1]).cumsum()
            
             val_no_ins    = np.round(self._no_ins*self.val_split).astype(int).reshape(-1)
             val_last_ins  = val_no_ins.cumsum()
@@ -148,7 +147,7 @@ class cMAPSS:
             train_last_ins  = train_no_ins.cumsum()
             train_first_ins = np.append(0, train_no_ins[:-1]).cumsum()
             
-            outputs = np.arange(self.s_len, self.s_len*self._no_ins.max(), self.s_len).reshape(-1,1)  #Generating train_out through vectorising
+            outputs = np.arange(self.s_len, self.s_len*(self._no_ins.max()+1), self.s_len).reshape(-1,1)  #Generating train_out through vectorising
             outputs = np.repeat(outputs, self.no_engines, axis = 1)
             outputs = np.concatenate((self._no_ins.T, outputs),   axis = 0)
             outputs = np.apply_along_axis(self._assign_dummy, 0, outputs)
@@ -168,12 +167,12 @@ class cMAPSS:
                                    self._input_data.shape[1]),
                                    1000.0)
                 
-            self.train_out = np.full(train_total_ins, 1000.0)
+            self.train_out = np.full(train_total_ins, 1000)
                 
-            self.val_out   = np.full(val_total_ins, 1000.0)
+            self.val_out   = np.full(val_total_ins, 1000)
             
-            for first,last,tins,vins,tfirst,tlast,vfirst,vlast,eng_cycle,i in zip(first_ins, 
-                                                                                  last_ins,
+            for nins,first,tins,vins,tfirst,tlast,vfirst,vlast,eng_cycle,i in zip(self._no_ins,
+                                                                                  first_ins,
                                                                                   train_no_ins,
                                                                                   val_no_ins,
                                                                                   train_first_ins,
@@ -183,7 +182,7 @@ class cMAPSS:
                                                                                   self._cycle_len, 
                                                                                   range(1, self.no_engines+1)):
                 
-                indexes = np.arange(first, last)
+                indexes = np.arange(nins)
                 np.random.shuffle(indexes)
                                     
                 temp = self._input_data[self._e_id == i, :]
@@ -196,6 +195,7 @@ class cMAPSS:
                     
                     self.val_in  [j, :eng_cycle-(ind+1)*self.s_len, :] = temp[:-(ind+1)*self.s_len, :]
                 
+                indexes = indexes + first
                 self.train_out[np.arange(tfirst, tlast)] = outputs[indexes[vins:]]
                 self.val_out  [np.arange(vfirst, vlast)] = outputs[indexes[:vins]]
         
@@ -261,7 +261,7 @@ class cMAPSS:
         
     def _assign_dummy(self, x):
             
-        x[x[0]:] = 1000
+        x[x[0]+1:] = 1000
             
         return x
     
@@ -282,5 +282,5 @@ if __name__ == '__main__':
     ci.get_data(1)
     pp1 = cMAPSS()
     pp1.preprocess(ci.Train_input)
-    pp1.preprocess(ci.Test_input, False)
+#    pp1.preprocess(ci.Test_input, False)
 
