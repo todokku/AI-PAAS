@@ -46,15 +46,15 @@ class cMAPSS:
         
         d = cls.est_rul - cls.true_rul
         
-        cls.rmse = (d**2)
-        cls.rmse = (cls.rmse.mean())**0.5
+        cls.mse = (d**2)
+        cls.mse = cls.mse.mean()
         
         d[d>=0]  = np.exp(d[d>=0]/10) - 1
         d[d<0]   = np.exp(-(d[d<0]/13)) - 1
 
         cls.s    = int(np.round(d.sum()))
         
-        print(f'The score is - {cls.s} and rmse is - {cls.rmse} !!! Cry or Celebrate')
+        print(f'The score is - {cls.s} and mse is - {cls.mse} !!! Cry or Celebrate')
         
     def __init__(self):
         

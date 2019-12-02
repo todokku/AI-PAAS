@@ -36,7 +36,8 @@ class RNN_to_FF:
                  beta         = [0.9,0.999],
                  model_dir      = '../KerasModels/',
                  run_id         = None,
-                 early_stopping = True):
+                 early_stopping = True,
+                 enable_norm    = False):
       
     
         self.rnn_type    = rnn_type
@@ -59,6 +60,7 @@ class RNN_to_FF:
         self.model_dir      = model_dir 
         self.run_id         = run_id
         self.early_stopping = early_stopping
+        self.enable_norm    = enable_norm
         
 # ==================================================================================================
         
@@ -73,7 +75,7 @@ class RNN_to_FF:
                                                      bias_regularizer      = self._l2_reg,
                                                      recurrent_regularizer = self._l2_reg,
                                                      return_sequences=True))
-            self.model.add(tf.keras.layers.LayerNormalization())
+            if self.enable_norm: self.model.add(tf.keras.layers.LayerNormalization())
     
         self.model.add(tf.keras.layers.SimpleRNN(self.rnn_neurons[-1],
                                                  dropout               = self.dropout,
@@ -81,7 +83,7 @@ class RNN_to_FF:
                                                  kernel_regularizer    = self._l2_reg,
                                                  bias_regularizer      = self._l2_reg,
                                                  recurrent_regularizer = self._l2_reg))
-        self.model.add(tf.keras.layers.LayerNormalization())
+        if self.enable_norm: self.model.add(tf.keras.layers.LayerNormalization())
         
 # ==================================================================================================        
         
@@ -96,7 +98,7 @@ class RNN_to_FF:
                                                 bias_regularizer      = self._l2_reg,
                                                 recurrent_regularizer = self._l2_reg,
                                                 return_sequences=True))
-            self.model.add(tf.keras.layers.LayerNormalization())
+            if self.enable_norm: self.model.add(tf.keras.layers.LayerNormalization())
     
         self.model.add(tf.keras.layers.LSTM(self.rnn_neurons[-1],
                                             dropout               = self.dropout,
@@ -104,7 +106,7 @@ class RNN_to_FF:
                                             kernel_regularizer    = self._l2_reg,
                                             bias_regularizer      = self._l2_reg,
                                             recurrent_regularizer = self._l2_reg))
-        self.model.add(tf.keras.layers.LayerNormalization())
+        if self.enable_norm: self.model.add(tf.keras.layers.LayerNormalization())
         
 # ==================================================================================================        
     
@@ -128,7 +130,7 @@ class RNN_to_FF:
                                                  bias_regularizer   = self._l2_reg))
             
             self.model.add(tf.keras.layers.LeakyReLU())
-            self.model.add(tf.keras.layers.BatchNormalization())
+            if self.enable_norm: self.model.add(tf.keras.layers.BatchNormalization())
        
         #Final Layer
         self.model.add(tf.keras.layers.Dense(1,
