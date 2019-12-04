@@ -30,15 +30,19 @@ class cMAPSS:
                  s_len      = 20,    #Length of Stagger // Unit - Cycle 
                  pca_var    = 0.97,
                  val_split  = 0.3,
-                 thresold   = 1e-5):
+                 thresold   = 1e-5,
+                 denoising  = True,
+                 preptype   = 'tj'):
         
-        self.win_len    = win_len
-        self.p_order    = p_order
-        self.std_fac    = std_fac
-        self.s_len      = s_len
-        self.pca_var    = pca_var
-        self.val_split  = val_split
-        self.thresold   = thresold
+        self.win_len   = win_len
+        self.p_order   = p_order
+        self.std_fac   = std_fac
+        self.s_len     = s_len
+        self.pca_var   = pca_var
+        self.val_split = val_split
+        self.thresold  = thresold
+        self.denoising = denoising 
+        self.preptype  = preptype
         
 # ================================================================================================
 
@@ -72,18 +76,28 @@ class cMAPSS:
                                                          self._input_data) :
             self.clustering()
             
-        for i in range(1,self.no_engines+1):
-        
-            self._input_data.loc[self._e_id == i,:] = self._input_data.loc[self._e_id == i,:].apply(self._savgol)
+        self._input_data = self._input_data.apply(lambda x: (x-x.mean())/x.std())    
+        self._input_data = self._input_data.to_numpy()
+            
+        if self.denoising == True:
+            for i in range(1,self.no_engines+1):
+            
+                self._input_data.loc[self._e_id == i,:] = self._input_data.loc[self._e_id == i,:].apply(self._savgol)
         
         if self._isTrain:
             self.get_fcycles()   
-        
-        self._input_data = self._input_data.apply(lambda x: (x-x.mean())/x.std())    
-        self._input_data = self._input_data.to_numpy()
-        
+
         self.dim_red()
         self.RNN_prep()
+
+# ================================================================================================
+      
+    def RNN_prep_constRUL(self):
+        
+        
+        
+    
+        pass
                 
 # ================================================================================================        
     

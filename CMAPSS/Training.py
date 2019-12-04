@@ -29,12 +29,14 @@ class RNN_to_FF:
                  batch_size   = 32,
                  dropout      = 0.4,   #Dropout Probability
                  rec_dropout  = 0.2,
-                 l2           = 0.001,
+                 l2_k         = 0.001,
+                 l2_b         = 0.,
+                 l2_r         = 0., 
                  lRELU_alpha  = 0.05,
                  epsilon      = 1e-7,
                  lr           = 0.001,
                  beta         = [0.9,0.999],
-                 model_dir      = '../KerasModels/',
+                 model_dir      = None,
                  run_id         = None,
                  early_stopping = True,
                  enable_norm    = False):
@@ -50,7 +52,9 @@ class RNN_to_FF:
         
         self.dropout     = dropout
         self.rec_dropout = rec_dropout
-        self.l2          = l2
+        self.l2_k        = l2_k
+        self.l2_r        = l2_r 
+        self.l2_b        = l2_b  
         self.lr          = lr
         self.beta        = beta
         
@@ -71,18 +75,18 @@ class RNN_to_FF:
             self.model.add(tf.keras.layers.SimpleRNN(self.rnn_neurons[i],
                                                      dropout               = self.dropout,
                                                      recurrent_dropout     = self.rec_dropout,
-                                                     kernel_regularizer    = self._l2_reg,
-                                                     bias_regularizer      = self._l2_reg,
-                                                     recurrent_regularizer = self._l2_reg,
+                                                     kernel_regularizer    = self._l2_k,
+                                                     bias_regularizer      = self._l2_b,
+                                                     recurrent_regularizer = self._l2_r,
                                                      return_sequences=True))
             if self.enable_norm: self.model.add(tf.keras.layers.LayerNormalization())
     
         self.model.add(tf.keras.layers.SimpleRNN(self.rnn_neurons[-1],
                                                  dropout               = self.dropout,
                                                  recurrent_dropout     = self.rec_dropout,
-                                                 kernel_regularizer    = self._l2_reg,
-                                                 bias_regularizer      = self._l2_reg,
-                                                 recurrent_regularizer = self._l2_reg))
+                                                 kernel_regularizer    = self._l2_k,
+                                                 bias_regularizer      = self._l2_b,
+                                                 recurrent_regularizer = self._l2_r))
         if self.enable_norm: self.model.add(tf.keras.layers.LayerNormalization())
         
 # ==================================================================================================        
@@ -94,18 +98,18 @@ class RNN_to_FF:
             self.model.add(tf.keras.layers.LSTM(self.rnn_neurons[i],
                                                 dropout               = self.dropout,
                                                 recurrent_dropout     = self.rec_dropout,
-                                                kernel_regularizer    = self._l2_reg,
-                                                bias_regularizer      = self._l2_reg,
-                                                recurrent_regularizer = self._l2_reg,
+                                                kernel_regularizer    = self._l2_k,
+                                                bias_regularizer      = self._l2_b,
+                                                recurrent_regularizer = self._l2_r,
                                                 return_sequences=True))
             if self.enable_norm: self.model.add(tf.keras.layers.LayerNormalization())
     
         self.model.add(tf.keras.layers.LSTM(self.rnn_neurons[-1],
                                             dropout               = self.dropout,
                                             recurrent_dropout     = self.rec_dropout,
-                                            kernel_regularizer    = self._l2_reg,
-                                            bias_regularizer      = self._l2_reg,
-                                            recurrent_regularizer = self._l2_reg))
+                                            kernel_regularizer    = self._l2_k,
+                                            bias_regularizer      = self._l2_b,
+                                            recurrent_regularizer = self._l2_r))
         if self.enable_norm: self.model.add(tf.keras.layers.LayerNormalization())
         
 # ==================================================================================================        
@@ -114,7 +118,9 @@ class RNN_to_FF:
         
         self.model   = tf.keras.models.Sequential(tf.keras.layers.Masking(mask_value = 1000.0,
                                                                           input_shape=(None,self.features)))
-        self._l2_reg = tf.keras.regularizers.l2(l=self.l2)
+        self._l2_k = tf.keras.regularizers.l2(l=self.l2_k)
+        self._l2_r = tf.keras.regularizers.l2(l=self.l2_r)
+        self._l2_b = tf.keras.regularizers.l2(l=self.l2_b)
         
         if self.rnn_type == 'simpleRNN':
             self.create_simpleRNN()
@@ -126,8 +132,8 @@ class RNN_to_FF:
         for i in range(0, len(self.ff_neurons)):
             
             self.model.add(tf.keras.layers.Dense(self.ff_neurons[i],
-                                                 kernel_regularizer = self._l2_reg,
-                                                 bias_regularizer   = self._l2_reg))
+                                                 kernel_regularizer = self._l2_k,
+                                                 bias_regularizer   = self._l2_b))
             
             self.model.add(tf.keras.layers.LeakyReLU())
             if self.enable_norm: self.model.add(tf.keras.layers.BatchNormalization())
@@ -140,7 +146,7 @@ class RNN_to_FF:
                                              beta_1        = self.beta[0],
                                              beta_2        = self.beta[1],
                                              epsilon       = self.epsilon)
-              
+         #TODO use score as a cost function      
         self.model.compile(loss='mse',
                            optimizer = optimizer)
         
@@ -164,7 +170,7 @@ class RNN_to_FF:
                                                           restore_best_weights = True)]
         else:
             callbacks = []
-        #TODO use score as a cost function
+       
         
         self.h = self.model.fit(train_in,
                                 train_out,
@@ -182,12 +188,6 @@ class RNN_to_FF:
             model_json = self.model.to_json()
             
             with open(self.model_dir + '/' + self.run_id + '.json', "w") as json_file:
-                json_file.write(model_json)
-        else:            
-            self.model.save_weights(self.model_dir + t_stamp + f'_{self.loss}_{self.val_loss}' + '.h5')
-            model_json = self.model.to_json()
-            
-            with open(self.model_dir + t_stamp + f'_{self.loss}_{self.val_loss}' + '.json', "w") as json_file:
                 json_file.write(model_json)
              
 # ================================================================================================
