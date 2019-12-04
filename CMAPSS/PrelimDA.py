@@ -34,3 +34,9 @@ class cMAPSS:
     
     def engines_plot(self):
         pass
+    
+    def bef_aft(self):
+        pass
+    
+    
+    

@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/tejas/Documents/GitHub/AI-PAAS/CMAPSS/mlruns/1/ec3d3231682241b7b5e867306aae301c/artifacts
+end_time: 1575336310089
+entry_point_name: ''
+experiment_id: '1'
+lifecycle_stage: active
+name: ''
+run_id: ec3d3231682241b7b5e867306aae301c
+run_uuid: ec3d3231682241b7b5e867306aae301c
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1575336126653
+status: 3
+tags: []
+user_id: tejas

@@ -9,22 +9,22 @@ import Run
 
 prepros_params = {'win_len'   : 7, 
                   'p_order'   : 3, 
-                  'std_fac'   : 0.1,    #Stagered Repetition
-                  's_len'     : 5,      #Unit - Cycle change to percentage of sequence
+                  'std_fac'   : -0.25,    #Stagered Repetition
+                  's_len'     : 2,      #Unit - Cycle change to percentage of sequence
                   'pca_var'   : 0.97,
                   'thresold'  : 1e-5}
     
 model_hparams = {'rnn_type'    : 'simpleRNN',
-                 'rnn_neurons' : [2],
+                 'rnn_neurons' : [8,3],
                  'ff_neurons'  : []}
 
 train_hparams = {'dropout'        : 0.,
                  'rec_dropout'    : 0.,
-                 'l2'             : 0.,
+                 'l2'             : 0.001,
                  'lr'             : 0.005,
                  'beta'           : [0.9,0.999],
-                 'val_split'      : 0.30,
-                 'epochs'         : 10,
+                 'val_split'      : 0.20,
+                 'epochs'         : 5,
                  'batch_size'     : 128,
                  'epsilon'        : 1e-7,
                  'early_stopping' : False,

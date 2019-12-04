@@ -126,7 +126,7 @@ class cMAPSS:
             
 # ================================================================================================        
   
-    def RNN_prep(self):    #Preparing the data for any RNN Needs improvement
+    def RNN_prep(self):    #Preparing the data for any RNN
 
         if self._isTrain:
                        

@@ -71,8 +71,8 @@ def cMAPPS(experiment_name,
         cp.preprocess(ci.Test_input, isTrain = False)
         ct.get_score(rnn_ff.model, cp.test_in, ci.RUL_input)
         
-        mlflow.log_metric({'Score'    : ct.s,
-                           'Test_MSE' : ct.mse})
+        mlflow.log_metrics({'Score'    : ct.s,
+                            'Test_MSE' : ct.mse})
     
         mlflow.set_tag('Test_RMSE', ct.mse**0.5)
 
