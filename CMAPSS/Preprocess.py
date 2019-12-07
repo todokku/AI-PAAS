@@ -84,10 +84,13 @@ class cMAPSS:
             
                 self._input_data.loc[self._e_id == i,:] = self._input_data.loc[self._e_id == i,:].apply(self._savgol)
         
+        
+        
         if self._isTrain:
             self.get_fcycles()   
 
         self._input_data = self._input_data.to_numpy()  
+        
         self.dim_red()
         self.RNN_prep()
 
