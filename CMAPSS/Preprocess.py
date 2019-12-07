@@ -77,7 +77,7 @@ class cMAPSS:
             self.clustering()
             
         self._input_data = self._input_data.apply(lambda x: (x-x.mean())/x.std())    
-        self._input_data = self._input_data.to_numpy()
+        
             
         if self.denoising == True:
             for i in range(1,self.no_engines+1):
@@ -87,6 +87,7 @@ class cMAPSS:
         if self._isTrain:
             self.get_fcycles()   
 
+        self._input_data = self._input_data.to_numpy()  
         self.dim_red()
         self.RNN_prep()
 

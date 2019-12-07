@@ -10,7 +10,7 @@ Created on Wed Oct 23 13:44:59 2019
 """
 
 import mlflow
-
+from tensorflow.keras.backend import clear_session
 import tempfile
 
 def cMAPPS(experiment_name,
@@ -94,5 +94,7 @@ def cMAPPS(experiment_name,
         rnn_ff.train_model(cp.train_in, cp.train_out, cp.val_in, cp.val_out)
         cp.preprocess(ci.Test_input, isTrain = False)
         ct.get_score(rnn_ff.model, cp.test_in, ci.RUL_input)
+    
+    clear_session()
 
     

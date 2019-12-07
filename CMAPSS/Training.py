@@ -15,6 +15,7 @@ Created on Tue Sep 17 12:19:06 2019
 # =========================================================================================
 
 import tensorflow        as tf
+tf.compat.v1.disable_eager_execution()
 import matplotlib.pyplot as plt
 import datetime
 
@@ -146,7 +147,11 @@ class RNN_to_FF:
                                              beta_1        = self.beta[0],
                                              beta_2        = self.beta[1],
                                              epsilon       = self.epsilon)
-         #TODO use score as a cost function      
+        
+        def seq_loss(true, pred):
+            
+            return tf.keras.backend.mean((true-pred)**2)
+        
         self.model.compile(loss='mse',
                            optimizer = optimizer)
         

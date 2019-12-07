@@ -49,12 +49,14 @@ class cMAPSS:
         cls.mse = (d**2)
         cls.mse = cls.mse.mean()
         
-        d[d>=0]  = np.exp(d[d>=0]/10) - 1
-        d[d<0]   = np.exp(-(d[d<0]/13)) - 1
+        cls.pem = d.mean()  #Prediction error Mean
+        
+        d[d>=0]  = np.exp(d[d>=0]/10 - 1) 
+        d[d<0]   = np.exp(-(d[d<0]/13) - 1) 
 
         cls.s    = int(np.round(d.sum()))
         
-        print(f'The score is - {cls.s} and mse is - {cls.mse} !!! Cry or Celebrate')
+        print(f'The score is - {cls.s} and mse is - {cls.mse} and pme is - {cls.pem} !!! Cry or Celebrate')
         
     def __init__(self):
         
