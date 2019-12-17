@@ -78,7 +78,7 @@ class cMAPSS:
     def __new__(self):
         raise Exception("Cannot Create Object")
              
-    datapath     = 'C:/Users/tejas/Documents/CMAPSSData/' #default value
+    datapath     = '../CMAPSSData/' #default value
     NoOfSen      = 21
     NoOfOPCo     = 3
     NoOfDS       = 4   #No of Datasets

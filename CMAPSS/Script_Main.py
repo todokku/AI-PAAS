@@ -8,21 +8,21 @@ Created on Mon Dec  2 18:01:08 2019
 import Run
 
 
-prepros_params = {'win_len'   : 7, 
+prepros_params = {'win_len'   : 5, 
                   'p_order'   : 3, 
-                  'std_fac'   : -0.25,    #Stagered Repetition
-                  's_len'     : 1,      #Unit - Cycle change to percentage of sequence
+                  'std_fac'   : -0.2,    #Stagered Repetition
+                  's_len'     : 2,      #Unit - Cycle change to percentage of sequence
                   'pca_var'   : 0.9,
                   'thresold'  : 1e-5,
                   'denoising' : True}
     
 model_hparams = {'rnn_type'    : 'simpleRNN',
-                 'rnn_neurons' : [10,10],
-                 'ff_neurons'  : [10]}
+                 'rnn_neurons' : [15,15],
+                 'ff_neurons'  : [15,15]}
 
-train_hparams = {'dropout'        : 0.3,
-                 'rec_dropout'    : 0.1,
-                 'l2_k'           : 0.01,
+train_hparams = {'dropout'        : 0.4,
+                 'rec_dropout'    : 0.2,
+                 'l2_k'           : 0.06,
                  'l2_b'           : 0.0,
                  'l2_r'           : 0.002,
                  'lr'             : 0.005,
@@ -47,12 +47,6 @@ Run.cMAPPS('CMAPSS',
            train_params,
            1,
            tracking = False)
-
-
-
-# path = 'C:/Users/janar/Downloads/CMAPSSData/',
-
-
 
 
 
