@@ -20,6 +20,7 @@ Created on Tue Sep 17 12:19:06 2019
 import scipy.signal          as scipy_sig
 import numpy                 as np
 import sklearn.decomposition as skl_d
+import sklearn.cluster       as skl_c
 
 class cMAPSS:
 
@@ -43,6 +44,8 @@ class cMAPSS:
         self.thresold  = thresold
         self.denoising = denoising 
         self.preptype  = preptype
+        
+        self.no_opcond = 6 #Temporarory assignment , change to if statement or lookup table
         
 # ================================================================================================
 
@@ -70,21 +73,10 @@ class cMAPSS:
         else:
             self._input_data = self._input_data.loc[:, self.train_variance > self.thresold]
         
-        if ('Altitude' in 
-            self._input_data) or ('Mach Number' in 
-                                  self._input_data) or ('TRA' in 
-                                                         self._input_data) :
-            self.clustering()
-            
-        self._input_data = self._input_data.apply(lambda x: (x-x.mean())/x.std())    
-        
-            
         if self.denoising == True:
             for i in range(1,self.no_engines+1):
             
                 self._input_data.loc[self._e_id == i,:] = self._input_data.loc[self._e_id == i,:].apply(self._savgol)
-        
-        
         
         if self._isTrain:
             self.get_fcycles()   
@@ -97,10 +89,6 @@ class cMAPSS:
 # ================================================================================================
       
     def RNN_prep_constRUL(self):
-        
-        
-        
-    
         pass
                 
 # ================================================================================================        
@@ -272,8 +260,18 @@ class cMAPSS:
          
 # ================================================================================================
 
-    def clustering(self):
-        pass
+    def normalising(self):
+        
+        if ('Altitude' in 
+            self._input_data) or ('Mach Number' in 
+                                  self._input_data) or ('TRA' in 
+                                                         self._input_data) :
+                                                        
+            cluster = skl_c.KMeans(self.no_opcond, random_state=0).fit(self._input_data.loc(['Altitude', 'Mach Number', 'TRA']))
+            
+        else : self._input_data = self._input_data.apply(lambda x: (x-x.mean())/x.std())   
+        
+        
 
 # ================================================================================================
         
@@ -286,7 +284,6 @@ class cMAPSS:
 # ================================================================================================
             
     def report_card(self):
-        
         pass
 
 # ================================================================================================

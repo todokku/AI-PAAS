@@ -17,19 +17,19 @@ prepros_params = {'win_len'   : 5,
                   'denoising' : True}
     
 model_hparams = {'rnn_type'    : 'simpleRNN',
-                 'rnn_neurons' : [15,15],
-                 'ff_neurons'  : [15,15]}
+                 'rnn_neurons' : [30,30],
+                 'ff_neurons'  : [30,30]}
 
-train_hparams = {'dropout'        : 0.4,
+train_hparams = {'dropout'        : 0.3,
                  'rec_dropout'    : 0.2,
                  'l2_k'           : 0.06,
-                 'l2_b'           : 0.0,
+                 'l2_b'           : 0.001,
                  'l2_r'           : 0.002,
                  'lr'             : 0.005,
                  'beta'           : [0.9,0.999],
                  'val_split'      : 0.30,
-                 'epochs'         : 5,
-                 'batch_size'     : 128,
+                 'epochs'         : 20,
+                 'batch_size'     : 32,
                  'epsilon'        : 1e-7,
                  'early_stopping' : False,
                  'enable_norm'    : True}

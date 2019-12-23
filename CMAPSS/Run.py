@@ -27,6 +27,8 @@ def cMAPPS(experiment_name,
     
     if tracking == True:
         
+        mlflow.set_tracking_uri('sqlite:///mlflow.db')
+
         mlflow.set_experiment(experiment_name)
     
         with mlflow.start_run():
