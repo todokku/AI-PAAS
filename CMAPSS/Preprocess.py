@@ -72,6 +72,8 @@ class cMAPSS:
             self._input_data    = self._input_data.loc[:, self.train_variance > self.thresold] 
         else:
             self._input_data = self._input_data.loc[:, self.train_variance > self.thresold]
+            
+        self.normalising()
         
         if self.denoising == True:
             for i in range(1,self.no_engines+1):
@@ -108,7 +110,7 @@ class cMAPSS:
         if self._isTrain:
         
             pca                 = skl_d.PCA(n_components = self.pca_var, 
-                                            svd_solver ='full')
+                                            svd_solver   = 'full')
             self._input_data    = pca.fit_transform(self._input_data)
             self.features = pca.n_components_
         
