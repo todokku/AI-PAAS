@@ -28,28 +28,29 @@ class cMAPSS:
                  win_len    = 21, 
                  p_order    = 3, 
                  std_fac    = 0,    #Std factor. Recommended to choose value from -1 to 0
-                 s_len      = 20,    #Length of Stagger // Unit - Cycle 
+                 s_len      = 20,   #Length of Stagger // Unit - Cycle 
                  pca_var    = 0.97,
-                 val_split  = 0.3,
+                 no_splits  = 5,    #k splits cross validation
                  thresold   = 1e-5,
                  denoising  = True,
+                 even_split = True,
                  preptype   = 'tj'):
         
-        self.win_len   = win_len
-        self.p_order   = p_order
-        self.std_fac   = std_fac
-        self.s_len     = s_len
-        self.pca_var   = pca_var
-        self.val_split = val_split
-        self.thresold  = thresold
-        self.denoising = denoising 
-        self.preptype  = preptype
+        self.win_len    = win_len
+        self.p_order    = p_order
+        self.std_fac    = std_fac
+        self.s_len      = s_len
+        self.pca_var    = pca_var
+        self.no_splits  = no_splits
+        self.thresold   = thresold
+        self.denoising  = denoising
+        self.even_split = even_split,
+        self.preptype   = preptype
         
         self.no_opcond = 6 #Temporarory assignment , change to if statement or lookup table
         
 # ================================================================================================
 
-    
     def preprocess(self, 
                    input_data,
                    isTrain    = True,
@@ -63,15 +64,21 @@ class cMAPSS:
         self._max_cycles = self._input_data['Cycles'].max()
         self._e_id       = self._input_data.iloc[:,0]
         self._cycles     = self._input_data.iloc[:,1]
-        self._input_data = self._input_data.iloc[:,2:]
+        self._opcond     = self._input_data.iloc[:,2:5]
+        self._input_data = self._input_data.iloc[:,5:]
         self._cycle_len  = self._e_id.value_counts().sort_index().to_numpy()
         
         
         if self._isTrain:
-            self.train_variance = self._input_data.var()
-            self._input_data    = self._input_data.loc[:, self.train_variance > self.thresold] 
+            self.data_var    = self._input_data.var()
+            self._input_data = self._input_data.loc[:, self.data_var > self.thresold]
+            
+            self.opcond_var = self._opcond.var()
+            self._opcond = self._opcond.loc[:, self.opcond_var > self.thresold]
+        
         else:
-            self._input_data = self._input_data.loc[:, self.train_variance > self.thresold]
+            self._input_data = self._input_data.loc[:, self.data_var > self.thresold]
+            self._opcond = self._opcond.loc[:, self.opcond_var > self.thresold]
             
         self.normalising()
         
@@ -141,6 +148,8 @@ class cMAPSS:
             self._no_ins = np.round(self.no_fcycles/self.s_len)   #fcycles are faulty cycles
             self._no_ins = self._no_ins.astype(int) - 1           #the rul 0 is removed
             self._no_ins = self._no_ins.reshape(-1,1)
+            
+            min_ins = self._no_ins.min()
             
             first_ins = np.append(0, self._no_ins[:-1]).cumsum()
             
@@ -264,17 +273,18 @@ class cMAPSS:
 
     def normalising(self):
         
-        if ('Altitude' in 
-            self._input_data) or ('Mach Number' in 
-                                  self._input_data) or ('TRA' in 
-                                                         self._input_data) :
+        if self._opcond.size == 0 :
                                                         
-            cluster = skl_c.KMeans(self.no_opcond, random_state=0).fit(self._input_data.loc(['Altitude', 'Mach Number', 'TRA']))
+            cluster = skl_c.KMeans(self.no_opcond, random_state=0).fit(self._opcond)
             
-        else : self._input_data = self._input_data.apply(lambda x: (x-x.mean())/x.std())   
+            opstate = cluster.predict(self._opcond)
+            
+            for i in self.no_opcond:
+                
+                self._input_data.loc[opstate == i,:] = self._input_data.loc[opstate == i,:].apply(lambda x: (x-x.mean())/x.std())   
+            
+        else : self._input_data = self._input_data.apply(lambda x: (x-x.mean())/x.std())
         
-        
-
 # ================================================================================================
         
     def _assign_dummy(self, x):
@@ -294,8 +304,7 @@ class cMAPSS:
 if __name__ == '__main__':
     
     from Input import cMAPSS as ci
-    
-#    ci.set_datapath('C:/Users/Tejas/Desktop/Tejas/engine-dataset/')
+
     ci.get_data(1)
     pp1 = cMAPSS()
     pp1.preprocess(ci.Train_input)

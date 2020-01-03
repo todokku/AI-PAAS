@@ -19,6 +19,11 @@ tf.compat.v1.disable_eager_execution()
 import matplotlib.pyplot as plt
 import datetime
 
+# class sGRUcell(tf.keras.layers.Layer):  #Stacked GRU
+    
+#     def __init__(self):
+#       super(MyModel, self).__init__()
+
 class RNN_to_FF:
         
     def __init__(self,
@@ -113,12 +118,17 @@ class RNN_to_FF:
                                             recurrent_regularizer = self._l2_r))
         if self.enable_norm: self.model.add(tf.keras.layers.LayerNormalization())
         
+# ==================================================================================================          
+
+    def create_GRU(self):
+
+        
 # ==================================================================================================        
     
     def create_model(self):
         
-        self.model   = tf.keras.models.Sequential(tf.keras.layers.Masking(mask_value = 1000.0,
-                                                                          input_shape=(None,self.features)))
+        self.model   = tf.keras.Sequential(tf.keras.layers.Masking(mask_value = 1000.0,
+                                                                   input_shape=(None,self.features)))
         self._l2_k = tf.keras.regularizers.l2(l=self.l2_k)
         self._l2_r = tf.keras.regularizers.l2(l=self.l2_r)
         self._l2_b = tf.keras.regularizers.l2(l=self.l2_b)
