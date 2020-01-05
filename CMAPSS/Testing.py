@@ -20,54 +20,66 @@ import numpy      as np
 import tensorflow as tf
 
 
-
-def read_model(path): #path is the common name between the two files
+def read_model(path):  # path is the common name between the two files
 
     with open(path + '.json', 'r') as json_file:
         model_json = json_file.read()
-        
+
     model = tf.keras.models.model_from_json(model_json)
     model.load_weights(path + ".h5")
-    
+
     return model
-    
-    
+
+
 #    return tf.keras.models.load_model(path)
 
 class cMAPSS:
-    
+
+    @classmethod
+    def get_score(cls, models, test_in, true_rul):
+        cls.true_rul = true_rul.to_numpy().reshape(-1, 1)
+
+        cls.est_rul = models[0].predict(test_in, batch_size=None).reshape(-1, 1)
+
+        for i in range(len(models) - 1):
+            cls.est_rul = np.concatenate((cls.est_rul, models[i].predict(test_in, batch_size=None)), axis=1)
+
+        # Calculating S score from the NASA paper, variables can be found there
+
+        d = cls.est_rul - np.repeat(cls.true_rul, len(models))
+
+        cls.mse = (d ** 2)
+        cls.mse = cls.mse.mean()
+
+        cls.pem = d.mean()  # Prediction error Mean
+
+        d[d >= 0] = np.exp(d[d >= 0] / 10 - 1)
+        d[d < 0] = np.exp(-(d[d < 0] / 13) - 1)
+
+        cls.s = int(np.round(d.sum()))
+
+        print(f'The score is - {cls.s} and mse is - {cls.mse} and pme is - {cls.pem} !!! Cry or Celebrate')
+
     @classmethod
     def get_score(cls, model, test_in, true_rul):
-        
         cls.true_rul = true_rul.to_numpy()
-        cls.est_rul  = model.predict(test_in, batch_size=None)  
-                
-        #Calculating S score from the NASA paper, variables can be found there
-        
-        d = cls.est_rul - cls.true_rul
-        
-        cls.mse = (d**2)
-        cls.mse = cls.mse.mean()
-        
-        cls.pem = d.mean()  #Prediction error Mean
-        
-        d[d>=0]  = np.exp(d[d>=0]/10 - 1) 
-        d[d<0]   = np.exp(-(d[d<0]/13) - 1) 
+        cls.est_rul = model.predict(test_in, batch_size=None)
 
-        cls.s    = int(np.round(d.sum()))
-        
+        # Calculating S score from the NASA paper, variables can be found there
+
+        d = cls.est_rul - cls.true_rul
+
+        cls.mse = (d ** 2)
+        cls.mse = cls.mse.mean()
+
+        cls.pem = d.mean()  # Prediction error Mean
+
+        d[d >= 0] = np.exp(d[d >= 0] / 10 - 1)
+        d[d < 0] = np.exp(-(d[d < 0] / 13) - 1)
+
+        cls.s = int(np.round(d.sum()))
+
         print(f'The score is - {cls.s} and mse is - {cls.mse} and pme is - {cls.pem} !!! Cry or Celebrate')
-        
+
     def __init__(self):
-        
         raise Exception('Cannot Create new Object')
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
