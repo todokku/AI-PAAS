@@ -324,9 +324,10 @@ class cMAPSS:
 
             if self.multi_op_normal:
 
-                cluster = skl_c.KMeans(self.no_opcond, random_state=0).fit(self._opcond)
+                if self._isTrain:
+                    self.cluster = skl_c.KMeans(self.no_opcond, random_state=0).fit(self._opcond)
 
-                op_state = cluster.predict(self._opcond)
+                op_state = self.cluster.predict(self._opcond)
 
                 for i in range(self.no_opcond):
                     self._input_data.loc[op_state == i, :] = self._input_data.loc[op_state == i, :].apply(
@@ -337,6 +338,8 @@ class cMAPSS:
             else:
                 self._input_data = self._input_data.join(self._opcond)
                 self._input_data = self._input_data.apply(lambda x: (x - x.mean()) / x.std())
+
+
         else:
             self._input_data = self._input_data.apply(lambda x: (x - x.mean()) / x.std())
 
