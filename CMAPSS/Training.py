@@ -215,8 +215,8 @@ class RNN_to_FF:
 
         si = split_index
 
-        self.loss = []
-        self.val_loss = []
+        self.loss = np.array([]).reshape(0, 1)
+        self.val_loss = np.array([]).reshape(0, 1)
         self.h = []
 
         for i in split_index:
@@ -241,8 +241,8 @@ class RNN_to_FF:
                                              shuffle=True,
                                              callbacks=callbacks))
 
-            self.loss.append(int(round(self.h[i].history['loss'][-1])))
-            self.val_loss.append(int(round(self.h[i].history['val_loss'][-1])))
+            self.loss = np.append(self.loss, int(round(self.h[i].history['loss'][-1])))
+            self.val_loss = np.append(self.val_loss, int(round(self.h[i].history['val_loss'][-1])))
 
             if self.run_id is not None:
                 self.models[i].save_weights(self.model_dir + '/' + self.run_id + f'model{i + 1}.h5')
@@ -251,11 +251,13 @@ class RNN_to_FF:
                 with open(self.model_dir + '/' + self.run_id + f'model{i + 1}.json', "w") as json_file:
                     json_file.write(model_json)
 
+        self.del_loss = np.abs(self.loss-self.val_loss)
+
         print('\nTraining Summary\n')
         for i in split_index:
-            print(f'Model{i + 1}\n')
-            print(f'Loss     = {self.loss[i]}\n')
-            print(f'Val_Loss = {self.loss[i]}')
+            print(f'Model{i + 1}')
+            print(f'Loss     = {self.loss[i]}')
+            print(f'Val_Loss = {self.val_loss[i]}\n')
 
     # ================================================================================================
 

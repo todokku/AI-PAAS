@@ -32,10 +32,10 @@ class cMAPSS:
                  s_len=2,  # Length of Stagger // Unit - Cycle
                  pca_var=0.97,
                  no_splits=5,  # k splits cross validation
-                 thresold=1e-5,
+                 threshold=1e-5,
                  denoising=True,
                  even_split=True,
-                 mopnormal = True,   # Used to enable multi operating condition normalising and remove opcond
+                 multi_op_normal=True,  # Used to enable multi operating condition normalising and remove opcond
                  preptype='tj'):
 
         self.win_len = win_len
@@ -44,10 +44,10 @@ class cMAPSS:
         self.s_len = s_len
         self.pca_var = pca_var
         self.no_splits = no_splits
-        self.thresold = thresold
+        self.threshold = threshold
         self.denoising = denoising
         self.even_split = even_split
-        self.mopnormal = mopnormal
+        self.multi_op_normal = multi_op_normal
         self.preptype = preptype
 
         self.no_opcond = 6  # Temporary assignment , change to if statement or lookup table
@@ -73,14 +73,14 @@ class cMAPSS:
 
         if self._isTrain:
             self.data_var = self._input_data.var()
-            self._input_data = self._input_data.loc[:, self.data_var > self.thresold]
+            self._input_data = self._input_data.loc[:, self.data_var > self.threshold]
 
             self.opcond_var = self._opcond.var()
-            self._opcond = self._opcond.loc[:, self.opcond_var > self.thresold]
+            self._opcond = self._opcond.loc[:, self.opcond_var > self.threshold]
 
         else:
-            self._input_data = self._input_data.loc[:, self.data_var > self.thresold]
-            self._opcond = self._opcond.loc[:, self.opcond_var > self.thresold]
+            self._input_data = self._input_data.loc[:, self.data_var > self.threshold]
+            self._opcond = self._opcond.loc[:, self.opcond_var > self.threshold]
 
         self.normalising()
 
@@ -150,22 +150,9 @@ class cMAPSS:
             self._no_ins = self._no_ins.astype(int) - 1  # the rul 0 is removed
             self._no_ins = self._no_ins.reshape(-1, 1)
 
-            split_no_ins = np.floor(self._no_ins / self.no_splits).astype(int).reshape(-1)
-            split_last_ins = split_no_ins.cumsum()
-            split_first_ins = np.append(0, split_no_ins[:-1]).cumsum()
+            # Generating train_out through vectorising
+            outputs = np.arange(self.s_len, self.s_len * (self._no_ins.max() + 1), self.s_len).reshape(-1, 1)
 
-            fsplit_no_ins = self._no_ins.reshape(-1) - split_no_ins * (self.no_splits - 1)
-            fsplit_last_ins = fsplit_no_ins.cumsum()
-            fsplit_first_ins = np.append(0, fsplit_no_ins[:-1]).cumsum()
-
-            first_ins = np.append(0, self._no_ins[:-1]).cumsum()
-
-            total_no_ins = self._no_ins.sum()
-            split_tno_ins = split_no_ins.sum()
-            fsplit_tno_ins = total_no_ins - split_tno_ins * (self.no_splits - 1)
-
-            outputs = np.arange(self.s_len, self.s_len * (self._no_ins.max() + 1), self.s_len).reshape(-1,
-                                                                                                       1)  # Generating train_out through vectorising
             outputs = np.repeat(outputs, self.no_engines, axis=1)
             outputs = np.concatenate((self._no_ins.T, outputs), axis=0)
             outputs = np.apply_along_axis(self._assign_dummy, 0, outputs)
@@ -174,54 +161,10 @@ class cMAPSS:
             temp = outputs[outputs != 1000]  # Removing Padded Values
             outputs = temp
 
-            self.splits_in = []
-            self.splits_out = []
-
-            for k in range(self.no_splits - 1):
-                self.splits_in.append(np.full((split_tno_ins,
-                                               self._max_cycles,
-                                               self._input_data.shape[1]),
-                                              1000.0))
-
-                self.splits_out.append(np.full(split_tno_ins, 1000.0))
-
-            self.splits_in.append(np.full((fsplit_tno_ins,
-                                           self._max_cycles,
-                                           self._input_data.shape[1]),
-                                          1000.0))
-
-            self.splits_out.append(np.full(fsplit_tno_ins, 1000.0))
-
-            for nins, first, sins, sfins, sfirst, slast, sffirst, sflast, eng_cycle, i in zip(self._no_ins,
-                                                                                              first_ins,
-                                                                                              split_no_ins,
-                                                                                              fsplit_no_ins,
-                                                                                              split_first_ins,
-                                                                                              split_last_ins,
-                                                                                              fsplit_first_ins,
-                                                                                              fsplit_last_ins,
-                                                                                              self._cycle_len,
-                                                                                              range(1,
-                                                                                                    self.no_engines + 1)):
-
-                indexes = np.arange(nins)
-                np.random.shuffle(indexes)
-
-                temp = self._input_data[self._e_id == i, :]
-
-                for k in range(self.no_splits - 1):
-
-                    for ind, j in zip(indexes[sins * k: sins * (k + 1)], range(sfirst, slast)):
-                        self.splits_in[k][j, :eng_cycle - (ind + 1) * self.s_len, :] = temp[:-(ind + 1) * self.s_len, :]
-
-                    self.splits_out[k][np.arange(sfirst, slast)] = outputs[indexes[sins * k: sins * (k + 1)]]
-
-                for ind, j in zip(indexes[sins * (self.no_splits - 1):], range(sffirst, sflast)):
-                    self.splits_in[self.no_splits - 1][j, :eng_cycle - (ind + 1) * self.s_len, :] = temp[:-(
-                                ind + 1) * self.s_len, :]
-
-                self.splits_out[self.no_splits - 1][np.arange(sffirst, sflast)] = outputs[
-                    indexes[sins * (self.no_splits - 1):]]
+            if self.even_split:
+                self.train_prepES(outputs)
+            else:
+                self.train_prep(outputs)
 
         else:
             self.test_in = np.full((self.no_engines,
@@ -233,6 +176,106 @@ class cMAPSS:
                 c_len = self._cycle_len[i]
                 temp = self._input_data[self._e_id == i + 1, :]
                 self.test_in[i, -c_len:, :] = temp
+
+    # ================================================================================================
+
+    def train_prepES(self, outputs):
+
+        split_no_ins = np.floor(self._no_ins / self.no_splits).astype(int).reshape(-1)
+        split_last_ins = split_no_ins.cumsum()
+        split_first_ins = np.append(0, split_no_ins[:-1]).cumsum()
+
+        fsplit_no_ins = self._no_ins.reshape(-1) - split_no_ins * (self.no_splits - 1)
+        fsplit_last_ins = fsplit_no_ins.cumsum()
+        fsplit_first_ins = np.append(0, fsplit_no_ins[:-1]).cumsum()
+        first_ins = np.append(0, self._no_ins[:-1]).cumsum()
+
+        total_no_ins = self._no_ins.sum()
+        split_tno_ins = split_no_ins.sum()
+        fsplit_tno_ins = total_no_ins - split_tno_ins * (self.no_splits - 1)
+
+        self.splits_in = []
+        self.splits_out = []
+
+        for k in range(self.no_splits - 1):
+            self.splits_in.append(np.full((split_tno_ins,
+                                           self._max_cycles,
+                                           self._input_data.shape[1]),
+                                          1000.0))
+
+            self.splits_out.append(np.full(split_tno_ins, 1000.0))
+
+        self.splits_in.append(np.full((fsplit_tno_ins,
+                                       self._max_cycles,
+                                       self._input_data.shape[1]),
+                                      1000.0))
+        self.splits_out.append(np.full(fsplit_tno_ins, 1000.0))
+
+        for nins, first, sins, sfins, sfirst, slast, sffirst, sflast, eng_cycle, i in zip(self._no_ins,
+                                                                                          first_ins,
+                                                                                          split_no_ins,
+                                                                                          fsplit_no_ins,
+                                                                                          split_first_ins,
+                                                                                          split_last_ins,
+                                                                                          fsplit_first_ins,
+                                                                                          fsplit_last_ins,
+                                                                                          self._cycle_len,
+                                                                                          range(1,
+                                                                                                self.no_engines + 1)):
+
+            indexes = np.arange(nins)
+            np.random.shuffle(indexes)
+
+            temp = self._input_data[self._e_id == i, :]
+
+            for k in range(self.no_splits - 1):
+
+                for ind, j in zip(indexes[sins * k: sins * (k + 1)], range(sfirst, slast)):
+                    self.splits_in[k][j, :eng_cycle - (ind + 1) * self.s_len, :] = temp[:-(ind + 1) * self.s_len, :]
+
+                self.splits_out[k][np.arange(sfirst, slast)] = outputs[indexes[sins * k: sins * (k + 1)]]
+
+            for ind, j in zip(indexes[sins * (self.no_splits - 1):], range(sffirst, sflast)):
+                self.splits_in[self.no_splits - 1][j, :eng_cycle - (ind + 1) * self.s_len, :] = temp[:-(
+                        ind + 1) * self.s_len, :]
+
+            self.splits_out[self.no_splits - 1][np.arange(sffirst, sflast)] = outputs[
+                indexes[sins * (self.no_splits - 1):]]
+
+    # ================================================================================================
+
+    # def train_prep(self, outputs):
+    #
+    #     total_no_ins = self._no_ins.sum()
+    #     split_tno_ins = np.round(total_no_ins/self.no_splits).astype(int)
+    #
+    #
+    #     split_no_ins = np.floor(self._no_ins / self.no_splits).astype(int).reshape(-1)
+    #     split_last_ins = split_no_ins.cumsum()
+    #     split_first_ins = np.append(0, split_no_ins[:-1]).cumsum()
+    #
+    #     fsplit_no_ins = self._no_ins.reshape(-1) - split_no_ins * (self.no_splits - 1)
+    #     fsplit_last_ins = fsplit_no_ins.cumsum()
+    #     fsplit_first_ins = np.append(0, fsplit_no_ins[:-1]).cumsum()
+    #     first_ins = np.append(0, self._no_ins[:-1]).cumsum()
+    #
+    #     total_no_ins = self._no_ins.sum()
+    #     split_tno_ins = split_no_ins.sum()
+    #     fsplit_tno_ins = total_no_ins - split_tno_ins * (self.no_splits - 1)
+    #
+    #     for nins, first, sins, sfins, sfirst, slast, sffirst, sflast, eng_cycle, i in zip(self._no_ins,
+    #                                                                                       first_ins,
+    #                                                                                       split_no_ins,
+    #                                                                                       fsplit_no_ins,
+    #                                                                                       split_first_ins,
+    #                                                                                       split_last_ins,
+    #                                                                                       fsplit_first_ins,
+    #                                                                                       fsplit_last_ins,
+    #                                                                                       self._cycle_len,
+    #                                                                                       range(1,
+    #                                                                                             self.no_engines + 1)):
+    #
+    #     temp = self._input_data[self._e_id == i, :]
 
     # ================================================================================================
 
@@ -279,14 +322,15 @@ class cMAPSS:
 
         if self._opcond.shape[1] != 0:
 
-            if self.mopnormal:
+            if self.multi_op_normal:
 
                 cluster = skl_c.KMeans(self.no_opcond, random_state=0).fit(self._opcond)
 
-                opstate = cluster.predict(self._opcond)
+                op_state = cluster.predict(self._opcond)
 
                 for i in range(self.no_opcond):
-                    self._input_data.loc[opstate == i, :] = self._input_data.loc[opstate == i, :].apply(lambda x: (x - x.mean()) / x.std())
+                    self._input_data.loc[op_state == i, :] = self._input_data.loc[op_state == i, :].apply(
+                        lambda x: (x - x.mean()) / x.std())
 
                 self._input_data = self._input_data.dropna(axis='columns')
 
