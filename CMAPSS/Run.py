@@ -100,4 +100,6 @@ def cMAPPS(experiment_name,
         cp.preprocess(ci.Test_input, isTrain=False)
         ct.get_score(rnn_ff.models, cp.test_in, ci.RUL_input)
 
+        return cp, rnn_ff, ct
+
     clear_session()

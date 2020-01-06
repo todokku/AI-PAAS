@@ -150,6 +150,9 @@ class RNN_to_FF:
 
         self.models = []
 
+        if not self.kcrossval:
+            no_splits = 1
+
         for i in range(no_splits):
 
             model = tf.keras.Sequential(tf.keras.layers.Masking(mask_value=1000.0,
@@ -211,9 +214,9 @@ class RNN_to_FF:
         if self.kcrossval:
             split_index = np.arange(len(self.models))
         else:
-            split_index = [0, 1]
+            split_index = [0]
 
-        si = split_index
+        si = np.arange(len(self.models))
 
         self.loss = np.array([]).reshape(0, 1)
         self.val_loss = np.array([]).reshape(0, 1)
@@ -229,7 +232,8 @@ class RNN_to_FF:
             for j in si[:-1]:
                 train_in = np.concatenate((train_in, splits_in[j]), axis=0)
                 train_out = np.concatenate((train_out, splits_out[j]), axis=0)
-                si = np.roll(si, 1)
+
+            si = np.roll(si, 1)
 
             val_in = splits_in[len(self.models) - 1 - i]
             val_out = splits_out[len(self.models) - 1 - i]

@@ -10,11 +10,12 @@ import Run
 prepros_params = {'win_len': 5,
                   'p_order': 3,
                   'std_fac': -0.2,  # Staggered Repetition
-                  's_len': 20,  # Unit - Cycle change to percentage of sequence
+                  's_len': 2,  # Unit - Cycle change to percentage of sequence
                   'pca_var': 0.9,
                   'threshold': 1e-5,
                   'denoising': True,
-                  'no_splits': 2}
+                  'no_splits': 5,
+                  'multi_op_normal': True}
 
 model_hparams = {'rnn_type': 'GRU',
                  'rnn_neurons': [30, 30],
@@ -32,13 +33,13 @@ train_hparams = {'dropout': 0.3,
                  'epsilon': 1e-7,
                  'early_stopping': False,
                  'enable_norm': True,
-                 'kcrossval': True}
+                 'kcrossval': False}
 
 train_params = {**model_hparams,
                 **train_hparams}
 
-Run.cMAPPS('CMAPSS',
-           prepros_params,
-           train_params,
-           2,
-           tracking=False)
+cp, rnn_ff, ct = Run.cMAPPS('CMAPSS',
+                            prepros_params,
+                            train_params,
+                            2,
+                            tracking=False)
