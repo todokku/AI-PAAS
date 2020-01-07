@@ -175,7 +175,7 @@ class cMAPSS:
             for i in range(self.no_engines):
                 c_len = self._cycle_len[i]
                 temp = self._input_data[self._e_id == i + 1, :]
-                self.test_in[i, -c_len:, :] = temp
+                self.test_in[i, :c_len, :] = temp
 
     # ================================================================================================
 
@@ -322,23 +322,16 @@ class cMAPSS:
 
         if self._opcond.shape[1] != 0:
 
-            if self.multi_op_normal:
+            if self._isTrain:
+                self.cluster = skl_c.KMeans(self.no_opcond, random_state=0).fit(self._opcond)
 
-                if self._isTrain:
-                    self.cluster = skl_c.KMeans(self.no_opcond, random_state=0).fit(self._opcond)
+            op_state = self.cluster.predict(self._opcond)
 
-                op_state = self.cluster.predict(self._opcond)
+            for i in range(self.no_opcond):
+                self._input_data.loc[op_state == i, :] = self._input_data.loc[op_state == i, :].apply(
+                    lambda x: (x - x.mean()) / x.std())
 
-                for i in range(self.no_opcond):
-                    self._input_data.loc[op_state == i, :] = self._input_data.loc[op_state == i, :].apply(
-                        lambda x: (x - x.mean()) / x.std())
-
-                self._input_data = self._input_data.dropna(axis='columns')
-
-            else:
-                self._input_data = self._input_data.join(self._opcond)
-                self._input_data = self._input_data.apply(lambda x: (x - x.mean()) / x.std())
-
+            self._input_data = self._input_data.dropna(axis='columns')
 
         else:
             self._input_data = self._input_data.apply(lambda x: (x - x.mean()) / x.std())

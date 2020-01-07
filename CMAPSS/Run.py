@@ -55,7 +55,7 @@ def cMAPPS(experiment_name,
                                   run_id=run_id)
             rnn_ff.create_model(cp.no_splits)
 
-            rnn_ff.train_model(cp.splits_in, cp.splits_out)
+            rnn_ff.train_model(cp.splits_in, cp.splits_out, cp.no_splits)
 
             mlflow.log_param('Features', cp.features)
             mlflow.log_params(prepros_params)
@@ -96,7 +96,7 @@ def cMAPPS(experiment_name,
         rnn_ff = tr.RNN_to_FF(cp.features,
                               **train_params)
         rnn_ff.create_model(cp.no_splits)
-        rnn_ff.train_model(cp.splits_in, cp.splits_out)
+        rnn_ff.train_model(cp.splits_in, cp.splits_out, cp.no_splits)
         cp.preprocess(ci.Test_input, isTrain=False)
         ct.get_score(rnn_ff.models, cp.test_in, ci.RUL_input)
 

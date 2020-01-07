@@ -39,14 +39,14 @@ class cMAPSS:
     def get_score(cls, models, test_in, true_rul):
         true_rul = true_rul.to_numpy().reshape(-1, 1)
 
-        est_rul = models[0].predict(test_in, batch_size=None).reshape(-1, 1)
+        cls.est_rul = models[0].predict(test_in, batch_size=None).reshape(-1, 1)
 
         for i in range(1, len(models)):
-            est_rul = np.concatenate((est_rul, models[i].predict(test_in, batch_size=None)), axis=1)
+            est_rul = np.concatenate((cls.est_rul, models[i].predict(test_in, batch_size=None)), axis=1)
 
         # Calculating S score from the NASA paper, variables can be found there
 
-        pred_err = est_rul - np.repeat(true_rul, len(models), axis=1)
+        pred_err = cls.est_rul - np.repeat(true_rul, len(models), axis=1)
 
         cls.mse = (pred_err ** 2)
         cls.mse = cls.mse.mean(axis=0)
@@ -60,7 +60,7 @@ class cMAPSS:
             print(f'Score is - {cls.score[i]} and MSE is - {cls.mse[i]} and PEM is - {cls.pem[i]} !!! Cry or Celebrate\n')
 
         if len(models) > 1:
-            cm_pred_err = est_rul.mean(axis=1).reshape(-1, 1) - true_rul
+            cm_pred_err = cls.cm_est_rul.mean(axis=1).reshape(-1, 1) - true_rul
             cls.cm_mse = (cm_pred_err ** 2)
             cls.cm_mse = cls.cm_mse.mean()
             cls.cm_pem = cm_pred_err.mean()

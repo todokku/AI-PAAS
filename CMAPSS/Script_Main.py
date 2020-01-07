@@ -10,7 +10,7 @@ import Run
 prepros_params = {'win_len': 5,
                   'p_order': 3,
                   'std_fac': -0.2,  # Staggered Repetition
-                  's_len': 2,  # Unit - Cycle change to percentage of sequence
+                  's_len': 1,  # Unit - Cycle change to percentage of sequence
                   'pca_var': 0.9,
                   'threshold': 1e-5,
                   'denoising': True,
@@ -18,9 +18,8 @@ prepros_params = {'win_len': 5,
                   'multi_op_normal': True}
 
 model_hparams = {'rnn_type': 'GRU',
-                 'rnn_neurons': [30, 30],
-                 'ff_neurons': [20, 20]}
-
+                 'rnn_neurons': [60, 60],
+                 'ff_neurons': [40, 40]}
 train_hparams = {'dropout': 0.3,
                  'rec_dropout': 0.2,
                  'l2_k': 0.06,
@@ -28,8 +27,8 @@ train_hparams = {'dropout': 0.3,
                  'l2_r': 0.002,
                  'lr': 0.005,
                  'beta': [0.9, 0.999],
-                 'epochs': 1,
-                 'batch_size': 32,
+                 'epochs': 3,
+                 'batch_size': 512,
                  'epsilon': 1e-7,
                  'early_stopping': False,
                  'enable_norm': True,

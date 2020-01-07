@@ -198,7 +198,8 @@ class RNN_to_FF:
 
     def train_model(self,
                     splits_in,
-                    splits_out):
+                    splits_out,
+                    no_splits):
 
         # t_stamp = datetime.datetime.now()
         # t_stamp = t_stamp.strftime('%d_%b_%y__%H_%M')
@@ -212,11 +213,11 @@ class RNN_to_FF:
             callbacks = []
 
         if self.kcrossval:
-            split_index = np.arange(len(self.models))
+            split_index = np.arange(no_splits)
         else:
             split_index = [0]
 
-        si = np.arange(len(self.models))
+        si = np.arange(no_splits)
 
         self.loss = np.array([]).reshape(0, 1)
         self.val_loss = np.array([]).reshape(0, 1)
