@@ -17,8 +17,8 @@ prepros_params = {'win_len': 5,
                   'no_splits': 5,
                   'multi_op_normal': True}
 
-model_hparams = {'rnn_type': 'GRU',
-                 'rnn_neurons': [60, 60],
+model_hparams = {'rnn_type': 'simpleRNN',
+                 'rnn_neurons': [20, 20, 20],
                  'ff_neurons': [40, 40]}
 train_hparams = {'dropout': 0.3,
                  'rec_dropout': 0.2,
@@ -27,8 +27,8 @@ train_hparams = {'dropout': 0.3,
                  'l2_r': 0.002,
                  'lr': 0.005,
                  'beta': [0.9, 0.999],
-                 'epochs': 3,
-                 'batch_size': 512,
+                 'epochs': 1,
+                 'batch_size': 128,
                  'epsilon': 1e-7,
                  'early_stopping': False,
                  'enable_norm': True,
@@ -37,8 +37,8 @@ train_hparams = {'dropout': 0.3,
 train_params = {**model_hparams,
                 **train_hparams}
 
-cp, rnn_ff, ct = Run.cMAPPS('CMAPSS',
-                            prepros_params,
-                            train_params,
-                            2,
-                            tracking=False)
+ci, cp, rnn_ff, ct = Run.cMAPPS('CMAPSS',
+                                prepros_params,
+                                train_params,
+                                1,
+                                tracking=False)

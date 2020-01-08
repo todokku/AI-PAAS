@@ -42,7 +42,7 @@ class cMAPSS:
         cls.est_rul = models[0].predict(test_in, batch_size=None).reshape(-1, 1)
 
         for i in range(1, len(models)):
-            est_rul = np.concatenate((cls.est_rul, models[i].predict(test_in, batch_size=None)), axis=1)
+            cls.est_rul = np.concatenate((cls.est_rul, models[i].predict(test_in, batch_size=None)), axis=1)
 
         # Calculating S score from the NASA paper, variables can be found there
 

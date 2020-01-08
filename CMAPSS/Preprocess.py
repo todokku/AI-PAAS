@@ -247,35 +247,12 @@ class cMAPSS:
     # def train_prep(self, outputs):
     #
     #     total_no_ins = self._no_ins.sum()
-    #     split_tno_ins = np.round(total_no_ins/self.no_splits).astype(int)
+    #     split_no_ins = np.round(total_no_ins/self.no_splits).astype(int)
     #
+    #     for eng_cycle, i in zip(self._cycle_len, range(1, self.no_engines + 1)):
     #
-    #     split_no_ins = np.floor(self._no_ins / self.no_splits).astype(int).reshape(-1)
-    #     split_last_ins = split_no_ins.cumsum()
-    #     split_first_ins = np.append(0, split_no_ins[:-1]).cumsum()
-    #
-    #     fsplit_no_ins = self._no_ins.reshape(-1) - split_no_ins * (self.no_splits - 1)
-    #     fsplit_last_ins = fsplit_no_ins.cumsum()
-    #     fsplit_first_ins = np.append(0, fsplit_no_ins[:-1]).cumsum()
-    #     first_ins = np.append(0, self._no_ins[:-1]).cumsum()
-    #
-    #     total_no_ins = self._no_ins.sum()
-    #     split_tno_ins = split_no_ins.sum()
-    #     fsplit_tno_ins = total_no_ins - split_tno_ins * (self.no_splits - 1)
-    #
-    #     for nins, first, sins, sfins, sfirst, slast, sffirst, sflast, eng_cycle, i in zip(self._no_ins,
-    #                                                                                       first_ins,
-    #                                                                                       split_no_ins,
-    #                                                                                       fsplit_no_ins,
-    #                                                                                       split_first_ins,
-    #                                                                                       split_last_ins,
-    #                                                                                       fsplit_first_ins,
-    #                                                                                       fsplit_last_ins,
-    #                                                                                       self._cycle_len,
-    #                                                                                       range(1,
-    #                                                                                             self.no_engines + 1)):
-    #
-    #     temp = self._input_data[self._e_id == i, :]
+    #         for k in range(self.no_splits - 1):
+    #         temp = self._input_data[self._e_id == i, :]
 
     # ================================================================================================
 

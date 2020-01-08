@@ -77,30 +77,30 @@ class RNN_to_FF:
 
     # ==================================================================================================
 
-    def create_simpleRNN(self):
+    def create_simpleRNN(self, model):
 
         for i in range(0, len(self.rnn_neurons) - 1):
 
-            self.model.add(tf.keras.layers.SimpleRNN(self.rnn_neurons[i],
-                                                     dropout=self.dropout,
-                                                     recurrent_dropout=self.rec_dropout,
-                                                     kernel_regularizer=self._l2_k,
-                                                     bias_regularizer=self._l2_b,
-                                                     recurrent_regularizer=self._l2_r,
-                                                     return_sequences=True))
-            if self.enable_norm: self.model.add(tf.keras.layers.LayerNormalization())
+            model.add(tf.keras.layers.SimpleRNN(self.rnn_neurons[i],
+                                                dropout=self.dropout,
+                                                recurrent_dropout=self.rec_dropout,
+                                                kernel_regularizer=self._l2_k,
+                                                bias_regularizer=self._l2_b,
+                                                recurrent_regularizer=self._l2_r,
+                                                return_sequences=True))
+            if self.enable_norm: model.add(tf.keras.layers.LayerNormalization())
 
-        self.model.add(tf.keras.layers.SimpleRNN(self.rnn_neurons[-1],
-                                                 dropout=self.dropout,
-                                                 recurrent_dropout=self.rec_dropout,
-                                                 kernel_regularizer=self._l2_k,
-                                                 bias_regularizer=self._l2_b,
-                                                 recurrent_regularizer=self._l2_r))
-        if self.enable_norm: self.model.add(tf.keras.layers.LayerNormalization())
+        model.add(tf.keras.layers.SimpleRNN(self.rnn_neurons[-1],
+                                            dropout=self.dropout,
+                                            recurrent_dropout=self.rec_dropout,
+                                            kernel_regularizer=self._l2_k,
+                                            bias_regularizer=self._l2_b,
+                                            recurrent_regularizer=self._l2_r))
+        if self.enable_norm: model.add(tf.keras.layers.LayerNormalization())
 
     # ==================================================================================================
 
-    def create_LSTM(self):
+    def create_LSTM(self, model):
 
         for i in range(0, len(self.rnn_neurons) - 1):
 
@@ -239,12 +239,14 @@ class RNN_to_FF:
             val_in = splits_in[len(self.models) - 1 - i]
             val_out = splits_out[len(self.models) - 1 - i]
 
-            self.h.append(self.models[i].fit(train_in,
-                                             train_out,
-                                             validation_data=(val_in, val_out),
-                                             epochs=self.epochs,
-                                             shuffle=True,
-                                             callbacks=callbacks))
+            h = self.models[i].fit(train_in,
+                                   train_out,
+                                   validation_data=(val_in, val_out),
+                                   epochs=self.epochs,
+                                   batch_size=self.batch_size,
+                                   shuffle=True,
+                                   callbacks=callbacks)
+            self.h.append(h)
 
             self.loss = np.append(self.loss, int(round(self.h[i].history['loss'][-1])))
             self.val_loss = np.append(self.val_loss, int(round(self.h[i].history['val_loss'][-1])))
@@ -256,7 +258,7 @@ class RNN_to_FF:
                 with open(self.model_dir + '/' + self.run_id + f'model{i + 1}.json', "w") as json_file:
                     json_file.write(model_json)
 
-        self.del_loss = np.abs(self.loss-self.val_loss)
+        self.del_loss = np.abs(self.loss - self.val_loss)
 
         print('\nTraining Summary\n')
         for i in split_index:
