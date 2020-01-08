@@ -227,7 +227,7 @@ class RNN_to_FF:
 
             print(f'\nTraining Model{i + 1}\n')
 
-            train_in = np.array([]).reshape(0, splits_in[0].shape[1], splits_in[0].shape[2], )
+            train_in = np.array([]).reshape(0, splits_in[0].shape[1], splits_in[0].shape[2])
             train_out = np.array([])
 
             for j in si[:-1]:
