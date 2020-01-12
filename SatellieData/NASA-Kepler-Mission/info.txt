@@ -1,0 +1,12 @@
+2009 Data:
+Here is the first file - includes data for the first 100 days after launch of RW SPDs in RPM, 
+TCMD in Newton-meters, and RW motor temperatures in dec C.
+
+Here is the second sample html file, from the first 100 days after launch for the torque friction in 
+Newton-meters and the attitude error in radians.
+
+
+The orbit ephemeris is found at the JPL Horizons website: https://ssd.jpl.nasa.gov/horizons.cgi
+Kepler is spacecraft # 227
+
+ As per the news: Launch date: March 7, 2009; 1st RW (RW2) failed on July 14, 2012; 2nd RW (RW4) failed on May 11, 2013
