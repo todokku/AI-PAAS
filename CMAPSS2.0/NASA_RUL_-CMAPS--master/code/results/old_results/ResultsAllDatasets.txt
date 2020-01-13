@@ -1,0 +1,34 @@
+For model 1
+
+Computing for dataset 1
+
+DescribeResult(nobs=10, minmax=(array([11.13472519]), array([12.83964806])), mean=array([11.70383616]), variance=array([0.25457791]), skewness=array([1.05184712]), kurtosis=array([0.61952855]))
+
+DescribeResult(nobs=10, minmax=(array([193.06449115]), array([317.60044643])), mean=array([223.63779589]), variance=array([1303.356287]), skewness=array([1.90117504]), kurtosis=array([2.80828426]))
+
+DescribeResult(nobs=10, minmax=(array([15.22331847]), array([15.45183033])), mean=array([15.30687048]), variance=array([0.00508362]), skewness=array([0.63369458]), kurtosis=array([-0.3342133]))
+
+Computing for dataset 2
+
+DescribeResult(nobs=10, minmax=(array([17.72501159]), array([19.77129257])), mean=array([18.28062491]), variance=array([0.37726027]), skewness=array([1.51229636]), kurtosis=array([1.50993903]))
+
+DescribeResult(nobs=10, minmax=(array([1855.15265665]), array([2562.76705178])), mean=array([2083.0443087]), variance=array([43789.45874006]), skewness=array([1.27057173]), kurtosis=array([0.72759886]))
+
+DescribeResult(nobs=10, minmax=(array([33.62575081]), array([34.65466588])), mean=array([34.13616235]), variance=array([0.07052772]), skewness=array([0.05916768]), kurtosis=array([0.54230105]))
+
+Computing for dataset 3
+
+DescribeResult(nobs=10, minmax=(array([9.92564128]), array([11.91416092])), mean=array([10.83312497]), variance=array([0.36453718]), skewness=array([0.3377107]), kurtosis=array([-0.76611609]))
+
+DescribeResult(nobs=10, minmax=(array([139.66634131]), array([220.50426852])), mean=array([175.01309821]), variance=array([740.93319399]), skewness=array([0.25406175]), kurtosis=array([-1.16999382]))
+
+DescribeResult(nobs=10, minmax=(array([18.46369166]), array([18.82359363])), mean=array([18.64589237]), variance=array([0.00993725]), skewness=array([-0.07680921]), kurtosis=array([-0.17397176]))
+
+Computing for dataset 4
+
+DescribeResult(nobs=10, minmax=(array([22.18012693]), array([23.979277])), mean=array([22.97236606]), variance=array([0.34335877]), skewness=array([0.59793567]), kurtosis=array([-0.71015269]))
+
+DescribeResult(nobs=10, minmax=(array([5538.05929553]), array([8422.52058919])), mean=array([7025.19903786]), variance=array([573763.01203348]), skewness=array([-0.13168391]), kurtosis=array([0.34654763]))
+
+DescribeResult(nobs=10, minmax=(array([39.53237741]), array([40.53808547])), mean=array([39.99295625]), variance=array([0.10728081]), skewness=array([0.40062725]), kurtosis=array([-1.01805225]))
+
