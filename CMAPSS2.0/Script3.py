@@ -11,6 +11,7 @@ from tensorflow.keras.optimizers import Adam
 from ann_framework.data_handlers.data_handler_CMAPSS import CMAPSSDataHandler
 
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.cluster import KMeans
 
 import numpy as np
 
@@ -51,19 +52,33 @@ features = ['T2', 'T24', 'T30', 'T50', 'P2', 'P15', 'P30', 'Nf', 'Nc', 'epr', 'P
             'BPR', 'farB', 'htBleed', 'Nf_dmd', 'PCNfR_dmd', 'W31', 'W32']
 selected_indices = np.array([2, 3, 4, 7, 8, 9, 11, 12, 13, 14, 15, 17, 20, 21])
 selected_features = list(features[i] for i in selected_indices - 1)
-selected_features.extend(['Op. Settings 1', 'Op. Settings 2', 'Op. Settings 3'])
+
 data_folder = 'C:/Users/strix/Documents/Python Scripts/DLRADO/NASA_RUL_-CMAPS--master/CMAPSSData'
 # %%
 window_size = 17
 window_stride = 1
 max_rul = 139
 
+dataset_no = 2
+
+# if dataset_no == 1 or dataset_no == 3:
 min_max_scaler = MinMaxScaler(feature_range=(-1, 1))
 
-dHandler_cmaps = CMAPSSDataHandler(data_folder, 2, selected_features, max_rul,
+dHandler_cmaps = CMAPSSDataHandler(data_folder, dataset_no, selected_features, max_rul,
                                    window_size, window_stride, data_scaler=min_max_scaler)
 
 dHandler_cmaps.load_data(verbose=1, cross_validation_ratio=0)
+# else:
+#      dHandler_cmaps = CMAPSSDataHandler(data_folder, dataset_no, selected_features, max_rul,
+#                                        window_size, window_stride)
+#     dHandler_cmaps.load_data(verbose=1, cross_validation_ratio=0)
+#     cluster = KMeans(6, random_state=0).fit(dHandler_cmaps.X_train[['Op. Settings 1', 'Op. Settings 2', 'Op. Settings 3']])
+#     op_state = cluster.predict(dHandler_cmaps.X_train[['Op. Settings 1', 'Op. Settings 2', 'Op. Settings 3']])
+#     dHandler_cmaps.X_train = dHandler_cmaps.X_train.drop([['Op. Settings 1', 'Op. Settings 2', 'Op. Settings 3']])
+#
+#     for i in range(6):
+#         dHandler_cmaps.X_train.loc[op_state == i, :] = dHandler_cmaps.X_train.loc[op_state == i, :].apply(
+#             lambda x: 2 * (x - x.min()) / (x.max() - x.min()) - 1)
 
 model = RULmodel_SN_5(dHandler_cmaps.X_train.shape[1])
 model = get_compiled_model(model)

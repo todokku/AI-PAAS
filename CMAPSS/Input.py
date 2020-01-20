@@ -37,7 +37,7 @@ class CMAPSS:
 
         temp = ['Engine ID', 'Cycles'] + self.OpCond_names + self.Sensor_names + ['d1', 'd2']
         val_input = pd.read_csv(f"{self.datapath}{dataset_type}_FD00{self.dataset_no}.txt", " ", header=None, names=temp)
-        val_input.drop(columns=['d1', 'd2'], inplace=True)
+        val_input = val_input.drop(columns=['d1', 'd2'])
 
         return val_input
 
@@ -59,7 +59,7 @@ class CMAPSS:
 
             d_var = self.read_data('train', i)
             self.d_var['DataSet'] = [f'FD_00{i}'] * d_var.shape[0]
-            self.Train_input = pd.concat([cls.Train_input, d_var])
+            self.Train_input = pd.concat([self.Train_input, d_var])
 
             d_var = self.read_data('test', i)
             self.d_var['DataSet'] = [f'FD_00{i}'] * d_var.shape[0]

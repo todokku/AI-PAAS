@@ -6,7 +6,7 @@ from .sequenced_data_handler import SequenceDataHandler
 
 
 class CMAPSSDataHandler(SequenceDataHandler):
-    '''
+    """
     5    T2        - Total temperature at fan inlet      R
     6    T24       - Total temperature at lpc outlet     R
     7    T30       - Total temperature at hpc outlet     R
@@ -28,7 +28,7 @@ class CMAPSSDataHandler(SequenceDataHandler):
     23   PCNfR_dmd - Demanded corrected fan speed        rpm
     24   W31       - HPT coolant bleed                   lbm/s
     25   W32       - LPT coolant bleed                   lbm/s
-    '''
+    """
 
     # Method definition
 
@@ -121,7 +121,12 @@ class CMAPSSDataHandler(SequenceDataHandler):
         # Reescale data if data_scaler is available
         if self._data_scaler != None:
             df_cols = self._df_train.columns
+
+            # Add the if statement..
+
             cols_normalize = self._df_train.columns.difference(['Unit Number', 'RUL'])
+
+            #add clustering statements
 
             # Reescale training data
             norm_train_df = pd.DataFrame(self._data_scaler.fit_transform(self._df_train[cols_normalize]),
