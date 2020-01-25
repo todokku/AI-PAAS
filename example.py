@@ -46,4 +46,18 @@ model.compile(optimizer='Adam', loss='mse', metric='mse')
 
 model.fit(padded_inputs, padded_inputs)
 
-ynew = model.predict(padded_inputs.astype(float))
+ynew = model.predict(padded_inputs)
+
+#%%
+
+samples, timesteps, features = 32, 10, 8
+inputs = np.random.random([samples, timesteps, features]).astype(np.float32)
+inputs[:, 3, :] = 0.
+inputs[:, 5, :] = 0.
+
+model = tf.keras.models.Sequential()
+model.add(tf.keras.layers.Masking(mask_value=1000.,
+                                  input_shape=(timesteps, features)))
+model.add(tf.keras.layers.LSTM(1, return_sequences=True))
+
+output = model.predict(inputs)

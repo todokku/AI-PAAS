@@ -1,10 +1,23 @@
-import scipy.signal as scipy_sig
+"""
+AI-PAAS ,Ryerson Univesity
+
+@author:
+    Tejas Janardhan
+    AI-PAAS Phd Student
+
+"""
+
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
+import scipy.signal as scipy_sig
 
 
 class DeNoiser:
+    """
+    Used to denoise the inputs!
+
+    Requires Engine ID column
+    """
 
     def __init__(self, window_length, poly_order):
         self.window_length = window_length
@@ -17,12 +30,11 @@ class DeNoiser:
                                              mode='nearest')
         return smooth_sig
 
-    def smooth(self, input_df):
-        e_id = input_df['Engine ID']
-
-        input_df = input_df.groupby('Engine ID').transform(self._savgol)
+    def smooth(self, input_df, e_id):
 
         input_df = pd.concat((e_id, input_df), axis=1)
+        input_df = input_df.groupby('Engine ID').transform(self._savgol)
+
         return input_df
 
 
@@ -43,6 +55,7 @@ if __name__ == '__main__':
     e_dfr = raw_df.loc[raw_df['Engine ID'] == engine_no, :]
     e_dfs = smooth_df.loc[raw_df['Engine ID'] == engine_no, :]
     for i in range(1, raw_df.shape[1]):
+        plt.title(f'Engine Number {engine_no}')
         plt.plot(e_dfr.iloc[:, i])
         plt.plot(e_dfs.iloc[:, i])
         plt.ylabel(selected_feat[i-1])
