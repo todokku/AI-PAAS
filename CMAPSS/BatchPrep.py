@@ -50,7 +50,7 @@ class PrepRnnInOut:
 
 
 if __name__ == '__main__':
-    from Input import CMAPSS
+    from GetCMAPSS import CMAPSS
 
     raw_data = CMAPSS(1)
     raw_data.get_data()

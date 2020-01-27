@@ -14,11 +14,30 @@ import numpy as np
 tf.compat.v1.disable_eager_execution()
 
 
+class DataGenerator(tf.keras.utils.Sequence):
+
+    def __init__(self, in_list, out_array):
+        self.in_list = in_list
+        self.out_array = out_array
+
+        self.index = np.arange(out_array.shape[0])
+        np.random.shuffle(self.index)
+
+    def __len__(self):
+        return self.out_array.shape[0]
+
+    def __getitem__(self, ind):
+        return self.in_list[self.index[ind]], np.array([self.out_array[ind]])
+
+    def on_epoch_end(self):
+        np.random.shuffle(self.index)
+
+
 class RNNtoFF:
 
-    def __init__(self, features, rnn_neurons, ff_neurons, rnn_type='simpleRNN', epochs=10, batch_size=32, dropout=0.4,
+    def __init__(self, features, rnn_neurons, ff_neurons, rnn_type='simpleRNN', epochs=1, batch_size=32, dropout=0.4,
                  rec_dropout=0.2, l2_k=0.001, l2_b=0., l2_r=0., lRELU_alpha=0.05, lr=0.001, model_dir=None, run_id=None,
-                 early_stopping=True, enable_norm=False):
+                 early_stopping=False, enable_norm=False):
 
         self.rnn_type = rnn_type
         self.rnn_neurons = rnn_neurons
@@ -41,99 +60,69 @@ class RNNtoFF:
         self.early_stopping = early_stopping
         self.enable_norm = enable_norm
 
-    # ==================================================================================================
+    def _RNN(self, i, return_sequences, input_shape=None):
+        if self.rnn_type == 'simpleRNN':
+            return tf.keras.layers.SimpleRNN(self.rnn_neurons[i],
+                                             input_shape=input_shape,
+                                             dropout=self.dropout,
+                                             recurrent_dropout=self.rec_dropout,
+                                             kernel_regularizer=self._l2_k,
+                                             bias_regularizer=self._l2_b,
+                                             recurrent_regularizer=self._l2_r,
+                                             return_sequences=return_sequences)
+        elif self.rnn_type == 'LSTM':
+            return tf.keras.layers.LSTM(self.rnn_neurons[i],
+                                        input_shape=input_shape,
+                                        dropout=self.dropout,
+                                        recurrent_dropout=self.rec_dropout,
+                                        kernel_regularizer=self._l2_k,
+                                        bias_regularizer=self._l2_b,
+                                        recurrent_regularizer=self._l2_r,
+                                        return_sequences=return_sequences)
 
-    def create_simpleRNN(self, model):
-
-        for i in range(0, len(self.rnn_neurons) - 1):
-
-            model.add(tf.keras.layers.SimpleRNN(self.rnn_neurons[i],
-                                                dropout=self.dropout,
-                                                recurrent_dropout=self.rec_dropout,
-                                                kernel_regularizer=self._l2_k,
-                                                bias_regularizer=self._l2_b,
-                                                recurrent_regularizer=self._l2_r,
-                                                return_sequences=True))
-            if self.enable_norm:
-                model.add(tf.keras.layers.LayerNormalization())
-
-        model.add(tf.keras.layers.SimpleRNN(self.rnn_neurons[-1],
-                                            dropout=self.dropout,
-                                            recurrent_dropout=self.rec_dropout,
-                                            kernel_regularizer=self._l2_k,
-                                            bias_regularizer=self._l2_b,
-                                            recurrent_regularizer=self._l2_r))
-        if self.enable_norm:
-            model.add(tf.keras.layers.LayerNormalization())
-
-    # ==================================================================================================
-
-    def create_LSTM(self, model):
-
-        for i in range(0, len(self.rnn_neurons) - 1):
-
-            model.add(tf.keras.layers.LSTM(self.rnn_neurons[i],
-                                           dropout=self.dropout,
-                                           recurrent_dropout=self.rec_dropout,
-                                           kernel_regularizer=self._l2_k,
-                                           bias_regularizer=self._l2_b,
-                                           recurrent_regularizer=self._l2_r,
-                                           return_sequences=True))
-            if self.enable_norm:
-                model.add(tf.keras.layers.LayerNormalization())
-
-        model.add(tf.keras.layers.LSTM(self.rnn_neurons[-1],
+        elif self.rnn_type == 'GRU':
+            return tf.keras.layers.GRU(self.rnn_neurons[i],
+                                       input_shape=input_shape,
                                        dropout=self.dropout,
                                        recurrent_dropout=self.rec_dropout,
                                        kernel_regularizer=self._l2_k,
                                        bias_regularizer=self._l2_b,
-                                       recurrent_regularizer=self._l2_r))
+                                       recurrent_regularizer=self._l2_r,
+                                       return_sequences=return_sequences)
+        else:
+            raise Exception('Invalid RNN type')
+
+    def _create_RNN(self, model):
+        if len(self.rnn_neurons) == 1:
+            model.add(self._RNN(0, False, (None, self.features)))
+        else:
+            model.add(self._RNN(0, True, (None, self.features)))
         if self.enable_norm:
             model.add(tf.keras.layers.LayerNormalization())
 
-    # ==================================================================================================
+        if len(self.rnn_neurons) > 3:
+            for i in range(1, len(self.rnn_neurons) - 1):
+                model.add(self._RNN(i, True))
+                if self.enable_norm:
+                    model.add(tf.keras.layers.LayerNormalization())
 
-    def create_GRU(self, model):
-
-        for i in range(0, len(self.rnn_neurons) - 1):
-
-            model.add(tf.keras.layers.GRU(self.rnn_neurons[i],
-                                          dropout=self.dropout,
-                                          recurrent_dropout=self.rec_dropout,
-                                          kernel_regularizer=self._l2_k,
-                                          bias_regularizer=self._l2_b,
-                                          recurrent_regularizer=self._l2_r,
-                                          return_sequences=True))
+        if len(self.rnn_neurons) > 1:
+            model.add(self._RNN(-1, False))
             if self.enable_norm:
                 model.add(tf.keras.layers.LayerNormalization())
 
-        model.add(tf.keras.layers.GRU(self.rnn_neurons[-1],
-                                      dropout=self.dropout,
-                                      recurrent_dropout=self.rec_dropout,
-                                      kernel_regularizer=self._l2_k,
-                                      bias_regularizer=self._l2_b,
-                                      recurrent_regularizer=self._l2_r))
-        if self.enable_norm:
-            model.add(tf.keras.layers.LayerNormalization())
+        return model
 
     # ==================================================================================================
 
-    def create_model(self):
+    def _create_model(self):
 
-        model = tf.keras.Sequential(tf.keras.layers.Masking(mask_value=0.,
-                                                            input_shape=(None, self.features)))
+        model = tf.keras.Sequential()
         self._l2_k = tf.keras.regularizers.l2(l=self.l2_k)
         self._l2_r = tf.keras.regularizers.l2(l=self.l2_r)
         self._l2_b = tf.keras.regularizers.l2(l=self.l2_b)
 
-        if self.rnn_type == 'simpleRNN':
-            self.create_simpleRNN(model)
-        elif self.rnn_type == 'GRU':
-            self.create_GRU(model)
-        elif self.rnn_type == 'LSTM':
-            self.create_LSTM(model)
-        else:
-            raise Exception('Invalid RNN Type, choose between simpleRNN or LSTM')
+        model = self._create_RNN(model)
 
         for i in range(0, len(self.ff_neurons)):
 
@@ -142,32 +131,29 @@ class RNNtoFF:
                                             bias_regularizer=self._l2_b))
 
             model.add(tf.keras.layers.LeakyReLU())
-            if self.enable_norm: model.add(tf.keras.layers.BatchNormalization())
+            if self.enable_norm:
+                model.add(tf.keras.layers.BatchNormalization())
 
         # Final Layer
-        model.add(tf.keras.layers.Dense(1,
-                                        activation='softplus'))
+        model.add(tf.keras.layers.Dense(1, activation='softplus'))
 
-        optimizer = tf.keras.optimizers.Adam(learning_rate=self.lr,
-                                             beta_1=self.beta[0],
-                                             beta_2=self.beta[1],
-                                             epsilon=self.epsilon)
+        optimizer = tf.keras.optimizers.Adam(learning_rate=self.lr)
 
         model.compile(loss='mse',
+                      metrics=['mse'],
                       optimizer=optimizer)
-        self.models.append(model)
 
-        print(self.models[0].summary())
+        print(model.summary())
+
+        return model
 
     # ================================================================================================
 
-    def train_model(self,
-                    splits_in,
-                    splits_out,
-                    no_splits):
+    def create_trained_model(self,
+                             train,  # Tuple
+                             val=None):  # Tuple
 
-        # t_stamp = datetime.datetime.now()
-        # t_stamp = t_stamp.strftime('%d_%b_%y__%H_%M')
+        model = self._create_model()
 
         if self.early_stopping:
 
@@ -177,59 +163,32 @@ class RNNtoFF:
         else:
             callbacks = []
 
-        if self.kcrossval:
-            split_index = np.arange(no_splits)
+        if val is None:
+            self.h = model.fit(DataGenerator(train[0], train[1]),
+                               epochs=self.epochs,
+                               callbacks=callbacks)
         else:
-            split_index = [0]
+            self.h = model.fit(DataGenerator(train[0], train[1]),
+                               validation_data=DataGenerator(val[0], val[1]),
+                               epochs=self.epochs,
+                               callbacks=callbacks)
 
-        si = np.arange(no_splits)
+        self.loss = int(round(self.h.history['loss'][-1]))
 
-        self.loss = np.array([]).reshape(0, 1)
-        self.val_loss = np.array([]).reshape(0, 1)
-        self.h = []
+        if val is not None:
+            self.val_loss = int(round(self.h.history['val_loss'][-1]))
+            self.del_loss = np.abs(self.loss - self.val_loss)
 
-        for i in split_index:
+        if self.run_id is not None:
+            model.save_weights(self.model_dir + '/' + self.run_id + '.h5')
+            model_json = model.to_json()
 
-            print(f'\nTraining Model{i + 1}\n')
+            with open(self.model_dir + '/' + self.run_id + '.json', "w") as json_file:
+                json_file.write(model_json)
 
-            train_in = np.array([]).reshape(0, splits_in[0].shape[1], splits_in[0].shape[2])
-            train_out = np.array([])
 
-            for j in si[:-1]:
-                train_in = np.concatenate((train_in, splits_in[j]), axis=0)
-                train_out = np.concatenate((train_out, splits_out[j]), axis=0)
 
-            si = np.roll(si, 1)
-
-            val_in = splits_in[len(self.models) - 1 - i]
-            val_out = splits_out[len(self.models) - 1 - i]
-
-            h = self.models[i].fit(train_in,
-                                   train_out,
-                                   validation_data=(val_in, val_out),
-                                   epochs=self.epochs,
-                                   batch_size=self.batch_size,
-                                   shuffle=True,
-                                   callbacks=callbacks)
-            self.h.append(h)
-
-            self.loss = np.append(self.loss, int(round(self.h[i].history['loss'][-1])))
-            self.val_loss = np.append(self.val_loss, int(round(self.h[i].history['val_loss'][-1])))
-
-            if self.run_id is not None:
-                self.models[i].save_weights(self.model_dir + '/' + self.run_id + f'model{i + 1}.h5')
-                model_json = self.models[i].to_json()
-
-                with open(self.model_dir + '/' + self.run_id + f'model{i + 1}.json', "w") as json_file:
-                    json_file.write(model_json)
-
-        self.del_loss = np.abs(self.loss - self.val_loss)
-
-        print('\nTraining Summary\n')
-        for i in split_index:
-            print(f'Model{i + 1}')
-            print(f'Loss     = {self.loss[i]}')
-            print(f'Val_Loss = {self.val_loss[i]}\n')
+        return model
 
     # ================================================================================================
 
@@ -243,5 +202,26 @@ class RNNtoFF:
         plt.legend(['Train', 'Validation'], loc='upper left')
         plt.show()
 
-# ==================================================================================================
-# ==================================================================================================
+
+if __name__ == "__main__":
+
+    number_sequences = 100
+    low_range = 80
+    high_range = 120
+
+    seq_len = np.random.randint(low_range, high_range, number_sequences)
+
+    sequences = []
+
+    low_val = 0
+
+    high_val = 100
+
+    for i in range(number_sequences):
+        sequences.append(np.random.randint(low_val, high_val, (1, seq_len[i], 1)))
+
+    output = np.random.randint(0, 5, number_sequences)
+
+    model_creator = RNNtoFF(1, [5], [3], rnn_type='LSTM')
+
+    model = model_creator.create_trained_model((sequences, output))

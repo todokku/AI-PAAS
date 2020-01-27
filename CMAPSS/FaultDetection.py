@@ -10,7 +10,7 @@ giving a rough estimate of fault of the signal
 """
 import numpy as np
 import matplotlib.pyplot as plt
-
+import pandas as pd
 
 class FaultDetection:
 
@@ -24,11 +24,13 @@ class FaultDetection:
 
         return np.polyfit(x, y, 2)
 
-    def get_faulty_cycles(self, input_df):  # Provides an estimate for the number of faulty cycles in each engine
+    def get_faulty_cycles(self, input_df, e_id_df):  # Provides an estimate for the number of faulty cycles in each engine
 
-        no_engines = input_df['Engine ID'].max()
+        no_engines = e_id_df.max()
         fault_st_mean = np.full(no_engines, 0)
         fault_st_std = np.full(no_engines, 0)
+
+        input_df = pd.concat((e_id_df, input_df), axis=1)
 
         for i, in_e_df in input_df.groupby('Engine ID'):
             p_coeff = np.apply_along_axis(self._poly_fit, 0, in_e_df.iloc[:, 1:])
@@ -70,23 +72,21 @@ if __name__ == '__main__':
 
     selected_feat = ['T24', 'T30', 'T50', 'P30', 'Nf', 'Nc', 'Ps30', 'phi', 'NRf', 'NRc', 'BPR', 'W31', 'W32']
 
-    train_df = raw_data.Train_input[['Engine ID'] + selected_feat]
-    train_df = de_noise.smooth(train_df)
+    train_df = raw_data.Train_input[selected_feat]
+    e_id = raw_data.Train_input['Engine ID']
+    train_df = de_noise.smooth(train_df, e_id)
 
     fd = FaultDetection(-0.1)
-    faulty_cycles = fd.get_faulty_cycles(train_df)
+    faulty_cycles = fd.get_faulty_cycles(train_df, e_id)
 
     engine_no = 1
     # Plotting all Features
-    e_id = train_df['Engine ID']
-    e_df = train_df.loc[train_df['Engine ID'] == engine_no, :]
-    e_df = e_df.iloc[:,1:]
-    e_df = e_df.loc[:, fd.ig_feature[engine_no - 1]]
+    e_df = train_df.loc[e_id == engine_no, fd.ig_feature[engine_no - 1]]
     x = np.arange(e_df.shape[0])
-    for i in range(1, train_df.shape[1]):
+    for i in range(0, train_df.shape[1]):
         plt.title(f'Engine Number {engine_no}')
         plt.plot(x, e_df.iloc[:, i])
-        plt.plot(np.polyval(fd.co_eff[engine_no - 1][:, i - 1], x))
+        plt.plot(np.polyval(fd.co_eff[engine_no - 1][:, i], x))
         plt.ylabel(selected_feat[i - 1])
         plt.xlabel('Cycles')
         plt.show()
