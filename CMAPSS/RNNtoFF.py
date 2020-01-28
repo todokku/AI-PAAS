@@ -186,8 +186,6 @@ class RNNtoFF:
             with open(self.model_dir + '/' + self.run_id + '.json', "w") as json_file:
                 json_file.write(model_json)
 
-
-
         return model
 
     # ================================================================================================

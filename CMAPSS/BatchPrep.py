@@ -25,12 +25,15 @@ class PrepRnnInOut:
         return x
 
     def _prep_inputs(self, input_array):
+        no_features = input_array.shape[1]
         engine_seq = np.split(input_array, np.cumsum(np.unique(self.e_id, return_counts=True)[1])[:-1])
         seq_list = []
         for i, seq in enumerate(engine_seq):
             engine_list = []
             for j in range(self.no_ins[i]):
-                engine_list.append(np.split(seq, [self.cycle_len[i] - (j + 1) * self.s_len])[0])
+                engine_list.append(np.split(seq, [self.cycle_len[i] - (j + 1) * self.s_len])[0].reshape(1,
+                                                                                                        -1,
+                                                                                                        no_features))
             seq_list.extend(engine_list)
 
         return seq_list
@@ -45,8 +48,8 @@ class PrepRnnInOut:
         return outputs[outputs != 0.]  # Removing Padded Values
 
     def create_train_val(self, input_array):
-
-        return self._prep_inputs(input_array), self._prep_outputs()
+        if self.val_split == 0:
+            return self._prep_inputs(input_array), self._prep_outputs()
 
 
 if __name__ == '__main__':

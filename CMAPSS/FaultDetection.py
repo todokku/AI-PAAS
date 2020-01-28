@@ -12,6 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
+
 class FaultDetection:
 
     def __init__(self, conf_fac):
@@ -24,7 +25,8 @@ class FaultDetection:
 
         return np.polyfit(x, y, 2)
 
-    def get_faulty_cycles(self, input_df, e_id_df):  # Provides an estimate for the number of faulty cycles in each engine
+    def get_faulty_cycles(self, input_df,
+                          e_id_df):  # Provides an estimate for the number of faulty cycles in each engine
 
         no_engines = e_id_df.max()
         fault_st_mean = np.full(no_engines, 0)
