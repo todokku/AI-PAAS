@@ -58,4 +58,4 @@ if __name__ == '__main__':
 
     train_df = data.Train_input[selected_feat]
 
-    train_array = norm.normalising(train_df, op_cond_df)
+    train_df = norm.normalising(train_df, op_cond_df)

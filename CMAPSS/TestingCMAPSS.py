@@ -24,39 +24,21 @@ def read_model(path):
 class Tester:
 
     @classmethod
-    def get_score(cls, models, test_in, true_rul):
+    def get_score(cls, model, test_in, true_rul):
         true_rul = true_rul.to_numpy().reshape(-1, 1)
 
-        cls.est_rul = models[0].predict(test_in, batch_size=None).reshape(-1, 1)
-
-        for i in range(1, len(models)):
-            cls.est_rul = np.concatenate((cls.est_rul, models[i].predict(test_in, batch_size=None)), axis=1)
-
+        cls.est_rul = model.predict(test_in, batch_size=None).reshape(-1, 1)
         # Calculating S score from the NASA paper, variables can be found there
 
-        pred_err = cls.est_rul - np.repeat(true_rul, len(models), axis=1)
+        pred_err = cls.est_rul - true_rul
 
         cls.mse = (pred_err ** 2)
-        cls.mse = cls.mse.mean(axis=0)
-        cls.pem = pred_err.mean(axis=0)  # Prediction error Mean
+        cls.mse = cls.mse.mean()
+        cls.pem = pred_err.mean()  # Prediction error Mean
 
-        cls.score = np.apply_along_axis(cls._calc_score, 1, pred_err)
-        cls.score = np.round(pred_err.sum(axis=0)).astype(int)
+        cls.score = cls._calc_score(pred_err).sum()
 
-        print('Score Summary\n')
-        for i in range(len(models)):
-            print(
-                f'Score is - {cls.score[i]} and MSE is - {cls.mse[i]} and PEM is - {cls.pem[i]} !!! Cry or Celebrate\n')
-
-        if len(models) > 1:
-            cm_pred_err = cls.cm_est_rul.mean(axis=1).reshape(-1, 1) - true_rul
-            cls.cm_mse = (cm_pred_err ** 2)
-            cls.cm_mse = cls.cm_mse.mean()
-            cls.cm_pem = cm_pred_err.mean()
-            cls.cm_score = cls._calc_score(cm_pred_err)
-            cls.cm_score = np.round(cm_pred_err.sum()).astype(int)
-            print(f'Combined Score is - {cls.cm_score} and MSE is - {cls.cm_mse} and PEM is - {cls.cm_pem} !!! Cry or '
-                  'Celebrate\n')
+        print(f'Score is - {cls.score} and MSE is - {cls.mse} and MPE is - {cls.pem[i]} !!! Cry or Celebrate\n')
 
     @classmethod
     def _calc_score(cls, x):

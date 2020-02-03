@@ -65,10 +65,13 @@ class FaultDetection:
 
 
 if __name__ == '__main__':
-    from Input import CMAPSS
+    from GetCMAPSS import CMAPSS
     from DeNoising import DeNoiser
+    from Normalising import Normalizer
 
-    raw_data = CMAPSS(1)
+    ds_no = 2
+
+    raw_data = CMAPSS(ds_no)
     de_noise = DeNoiser(7, 3)
     raw_data.get_data()
 
@@ -76,6 +79,15 @@ if __name__ == '__main__':
 
     train_df = raw_data.Train_input[selected_feat]
     e_id = raw_data.Train_input['Engine ID']
+
+    if ds_no == 2 or ds_no == 4:
+        op_cond_df = raw_data.Train_input.iloc[:, 2:5]
+        norm = Normalizer(6)
+    else:
+        op_cond_df = None
+        norm = Normalizer()
+
+    train_df = norm.normalising(train_df, op_cond_df)
     train_df = de_noise.smooth(train_df, e_id)
 
     fd = FaultDetection(-0.1)
@@ -85,7 +97,7 @@ if __name__ == '__main__':
     # Plotting all Features
     e_df = train_df.loc[e_id == engine_no, fd.ig_feature[engine_no - 1]]
     x = np.arange(e_df.shape[0])
-    for i in range(0, train_df.shape[1]):
+    for i in range(0, e_df.shape[1]):
         plt.title(f'Engine Number {engine_no}')
         plt.plot(x, e_df.iloc[:, i])
         plt.plot(np.polyval(fd.co_eff[engine_no - 1][:, i], x))

@@ -35,8 +35,8 @@ class DataGenerator(tf.keras.utils.Sequence):
 
 class RNNtoFF:
 
-    def __init__(self, features, rnn_neurons, ff_neurons, rnn_type='simpleRNN', epochs=1, batch_size=32, dropout=0.4,
-                 rec_dropout=0.2, l2_k=0.001, l2_b=0., l2_r=0., lRELU_alpha=0.05, lr=0.001, model_dir=None, run_id=None,
+    def __init__(self, features, rnn_neurons, ff_neurons, rnn_type='simpleRNN', epochs=1, dropout=0.4, rec_dropout=0.2,
+                 l2_k=0.001, l2_b=0., l2_r=0., lRELU_alpha=0.05, lr=0.001, model_dir=None, run_id=None,
                  early_stopping=False, enable_norm=False):
 
         self.rnn_type = rnn_type
@@ -45,7 +45,6 @@ class RNNtoFF:
 
         self.features = features
         self.epochs = epochs
-        self.batch_size = batch_size
 
         self.dropout = dropout
         self.rec_dropout = rec_dropout
