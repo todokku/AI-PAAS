@@ -4,6 +4,7 @@
       <w>keras</w>
       <w>lstm</w>
       <w>mlflow</w>
+      <w>rmse</w>
       <w>softplus</w>
     </words>
   </dictionary>

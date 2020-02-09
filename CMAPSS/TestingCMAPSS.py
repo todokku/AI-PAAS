@@ -23,33 +23,29 @@ def read_model(path):
 
 class Tester:
 
-    @classmethod
-    def get_score(cls, model, test_in, true_rul):
-        true_rul = true_rul.to_numpy().reshape(-1, 1)
+    def __init__(self):
+        pass
 
-        cls.est_rul = model.predict(test_in, batch_size=None).reshape(-1, 1)
+    def get_score(self, model, test_list, true_rul_array):
+        true_rul_array = true_rul_array.reshape(-1, 1)
+        self.est_rul = model.predict(test_list, batch_size=None).reshape(-1, 1)
         # Calculating S score from the NASA paper, variables can be found there
+        pred_err = self.est_rul - true_rul_array
 
-        pred_err = cls.est_rul - true_rul
+        self.mse = (pred_err ** 2)
+        self.mse = self.mse.mean()
+        self.mpe = pred_err.mean()  # Mean Prediction Error
 
-        cls.mse = (pred_err ** 2)
-        cls.mse = cls.mse.mean()
-        cls.pem = pred_err.mean()  # Prediction error Mean
+        score = self._calc_score(pred_err).sum()
+        print(f'\nScore is - {score} and MSE is - {self.mse} and MPE is - {self.mpe} !!! Cry or Celebrate\n')
 
-        cls.score = cls._calc_score(pred_err).sum()
+        return score
 
-        print(f'Score is - {cls.score} and MSE is - {cls.mse} and MPE is - {cls.pem[i]} !!! Cry or Celebrate\n')
-
-    @classmethod
-    def _calc_score(cls, x):
-
+    def _calc_score(self, x):
         x[x >= 0] = np.exp(x[x >= 0] / 10 - 1)
         x[x < 0] = np.exp(-(x[x < 0] / 13) - 1)
 
         return x
-
-    def __init__(self):
-        raise Exception('Cannot Create new Object')
 
 if __name__ == '__main__':
 
@@ -75,3 +71,6 @@ if __name__ == '__main__':
     model_creator = RNNtoFF(1, [5], [3], rnn_type='LSTM')
 
     model = model_creator.create_trained_model((sequences, output))
+
+    tester = Tester()
+    score = tester.get_score(model, sequences, output)

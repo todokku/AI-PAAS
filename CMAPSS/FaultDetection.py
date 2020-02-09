@@ -25,7 +25,7 @@ class FaultDetection:
 
         return np.polyfit(x, y, 2)
 
-    def get_faulty_cycles(self, input_df,
+    def get_fault_start(self, input_df,
                           e_id_df):  # Provides an estimate for the number of faulty cycles in each engine
 
         no_engines = e_id_df.max()
@@ -57,11 +57,9 @@ class FaultDetection:
             fault_st_mean[i - 1] = st_pts.mean()
             fault_st_std[i - 1] = (st_pts.var()) ** 0.5
 
-        self.fault_start = fault_st_mean + fault_st_std * self.conf_fac
+        fault_start = np.round(fault_st_mean + fault_st_std * self.conf_fac).astype(int)
 
-        no_fault_cycles = np.round(input_df.groupby('Engine ID').size().values - self.fault_start).astype(int)
-
-        return no_fault_cycles
+        return fault_start
 
 
 if __name__ == '__main__':
@@ -91,7 +89,7 @@ if __name__ == '__main__':
     train_df = de_noise.smooth(train_df, e_id)
 
     fd = FaultDetection(-0.1)
-    faulty_cycles = fd.get_faulty_cycles(train_df, e_id)
+    fault_start = fd.get_fault_start(train_df, e_id)
 
     engine_no = 1
     # Plotting all Features

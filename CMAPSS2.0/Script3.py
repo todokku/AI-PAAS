@@ -59,7 +59,7 @@ window_size = 17
 window_stride = 1
 max_rul = 139
 
-dataset_no = 2
+dataset_no = 4
 
 # if dataset_no == 1 or dataset_no == 3:
 min_max_scaler = MinMaxScaler(feature_range=(-1, 1))
@@ -106,4 +106,4 @@ def calc_score(x):
 
 
 score = calc_score(pred_error).sum()
-# model.save('C:/Users/strix/Documents/Python Scripts/Models/model4_new.hdf5')
+# model.save('C:/Users/strix/Documents/Python Scripts/Models/model4_actual.hdf5')

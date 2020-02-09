@@ -15,10 +15,6 @@ selected_indices = np.array([2, 3, 4, 7, 8, 9, 11, 12, 13, 14, 15, 17, 20, 21])
 selected_features = list(features[i] for i in selected_indices - 1)
 data_folder = 'C:/Users/strix/Documents/Python Scripts/DLRADO/NASA_RUL_-CMAPS--master/CMAPSSData'
 
-window_size = 17
-window_stride = 1
-max_rul = 128
-
 min_max_scaler = MinMaxScaler(feature_range=(-1, 1))
 
 
@@ -79,9 +75,17 @@ def plot_RUL(real_rul, predicted_rul):
     # plt.yticks(y_ticks_array)
 
 
-i = 4
+# FD001 24, 1, 129
+# FD002 17, 1, 139
+# FD003 24, 1, 129
+# FD004 17, 1, 139
+i = 1
 
-model = tf.keras.models.load_model(f'C:/Users/strix/Documents/Python Scripts/Models/model{i}.hdf5')
+window_size = 24
+window_stride = 1
+max_rul = 129
+
+model = tf.keras.models.load_model(f'C:/Users/strix/Documents/Python Scripts/Models/model{i}_actual.hdf5')
 dHandler_cmaps = CMAPSSDataHandler(data_folder, i, selected_features, max_rul,
                                    window_size, window_stride, data_scaler=min_max_scaler)
 
@@ -93,7 +97,7 @@ model.evaluate(dHandler_cmaps.X_test,
 pred_values = model.predict(dHandler_cmaps.X_test)
 
 pred_error = pred_values - dHandler_cmaps.y_test
-mae = np.abs(pred_error).sum()/pred_error.shape[0]
+mae = np.abs(pred_error).sum() / pred_error.shape[0]
 
 score = calc_score(pred_error).sum()
 plot_RUL(dHandler_cmaps.y_test, pred_values)
