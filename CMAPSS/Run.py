@@ -34,7 +34,7 @@ params = {'ds_no': 1,
           'l2_b': 0.,
           'l2_r': 0.,
           'enable_norm': False,
-          'final_activation': 'None'}
+          'final_activation': None}
 
 mlflow.set_tracking_uri('sqlite:///mlflow.db')
 

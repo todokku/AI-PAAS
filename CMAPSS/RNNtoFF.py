@@ -27,7 +27,26 @@ class DataGenerator(tf.keras.utils.Sequence):
         return self.out_array.shape[0]
 
     def __getitem__(self, ind):
-        return self.in_list[self.index[ind]], np.array([self.out_array[ind]])
+        return self.in_list[self.index[ind]], np.array([self.out_array[self.index[ind]]])
+
+    def on_epoch_end(self):
+        np.random.shuffle(self.index)
+
+
+class DataGenerator_seq(tf.keras.utils.Sequence):
+
+    def __init__(self, in_list, out_list):
+        self.in_list = in_list
+        self.out_list = out_list
+
+        self.index = np.arange(len(out_list))
+        np.random.shuffle(self.index)
+
+    def __len__(self):
+        return len(self.out_list)
+
+    def __getitem__(self, ind):
+        return self.in_list[self.index[ind]], self.out_list[self.index[ind]]
 
     def on_epoch_end(self):
         np.random.shuffle(self.index)
@@ -389,12 +408,12 @@ class RNNtoFF_seq:
             callbacks = []
 
         if val is None:
-            self.h = model.fit(DataGenerator(train[0], train[1]),
+            self.h = model.fit(DataGenerator_seq(train[0], train[1]),
                                epochs=self.epochs,
                                callbacks=callbacks)
         else:
-            self.h = model.fit(DataGenerator(train[0], train[1]),
-                               validation_data=DataGenerator(val[0], val[1]),
+            self.h = model.fit(DataGenerator_seq(train[0], train[1]),
+                               validation_data=DataGenerator_seq(val[0], val[1]),
                                epochs=self.epochs,
                                callbacks=callbacks)
 
@@ -445,24 +464,18 @@ if __name__ == "__main__":
 
     seq_len = np.random.randint(low_range, high_range, number_sequences)
 
-    sequences = []
+    in_sequences = []
+    out_sequences = []
 
     low_val = 0
-
     high_val = 100
 
     for i in range(number_sequences):
-        sequences.append(np.random.randint(low_val, high_val, (1, seq_len[i], 1)))
+        in_sequences.append(np.random.randint(low_val, high_val, (1, seq_len[i], 1)))
+        out_sequences.append(np.random.randint(low_val, high_val, (1, seq_len[i], 1)))
 
-    output = np.random.randint(0, 5, number_sequences)
+    # output = np.random.randint(0, 5, number_sequences)
 
-    import tempfile
+    model_manager = RNNtoFF_seq(1)
 
-    tmpdir = tempfile.TemporaryDirectory()
-    model_manager = RNNtoFF(1, run_id='1', model_dir=tmpdir.name)
-
-    model = model_manager.create_trained_model((sequences, output))
-
-    model = model_manager.retrain_model(model, (sequences, output))
-
-    tmpdir.cleanup()
+    model = model_manager.create_trained_model((in_sequences, out_sequences))

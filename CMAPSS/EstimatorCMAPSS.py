@@ -21,7 +21,7 @@ class Estimator:
 
     def __init__(self, ds_no, window_len=7, poly_order=3, var_threshold=0.9, conf_factor=0, s_len=5,
                  initial_cutoff=0.75, ins_dropped=0.25, rnn_neurons=[10, 10], ff_neurons=[10], rnn_type='simpleRNN',
-                 epochs=1, lRELU_alpha=0.05, lr=0.001, dropout=0.4, rec_dropout=0.2, l2_k=0.001, l2_b=0., l2_r=0.,
+                 epochs=1, lRELU_alpha=0.3, lr=0.001, dropout=0.4, rec_dropout=0.2, l2_k=0.001, l2_b=0., l2_r=0.,
                  model_dir=None, run_id=None, enable_norm=True, final_activation=None):
         self.processed_train = False
         self.selected_features = ['T24', 'T30', 'T50', 'P30', 'Nf', 'Nc', 'Ps30', 'phi', 'NRf', 'NRc', 'BPR', 'W31',
