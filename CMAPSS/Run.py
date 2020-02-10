@@ -20,20 +20,21 @@ params = {'ds_no': 1,
           'initial_cutoff': 0.,
           'ins_dropped': 0.,
 
-          'rnn_neurons': [1000],
-          'ff_neurons': [500],
+          'rnn_neurons': [10],
+          'ff_neurons': [10],
           'rnn_type': 'LSTM',
 
           'epochs': 5,
 
-          'lRELU_alpha': 0.05,
+          'lRELU_alpha': 0.3,
           'lr': 0.002,
           'dropout': 0.4,
           'rec_dropout': 0.2,
           'l2_k': 0.001,
           'l2_b': 0.,
           'l2_r': 0.,
-          'enable_norm': False}
+          'enable_norm': False,
+          'final_activation': 'None'}
 
 mlflow.set_tracking_uri('sqlite:///mlflow.db')
 

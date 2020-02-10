@@ -9,7 +9,7 @@ AI-PAAS ,Ryerson Univesity
 import numpy as np
 
 
-class PrepRnnInOut_no_seq:
+class PrepRnnInOut:
 
     def __init__(self, s_len=5, initial_cutoff=0., ins_dropped=0.):
         self.s_len = s_len
@@ -24,7 +24,7 @@ class PrepRnnInOut_no_seq:
 
     def _prep_train_inputs(self, fault_start, input_array, e_id):
         self.cycle_len = np.unique(e_id, return_counts=True)[-1]
-        self.no_ins = np.round((self.cycle_len - fault_start) * (1-self.ins_dropped) / self.s_len).astype(int)
+        self.no_ins = np.round((self.cycle_len - fault_start) * (1 - self.ins_dropped) / self.s_len).astype(int)
         no_features = input_array.shape[1]
         engine_seq = np.split(input_array, np.cumsum(np.unique(e_id, return_counts=True)[1])[:-1])
         seq_list = []
@@ -65,7 +65,48 @@ class PrepRnnInOut_no_seq:
         else:
             return self._create_test_inputs(input_array, e_id)
 
+
 class PrepRnnInOut_seq:
+
+    def __init__(self):
+        self.max_rul = None
+
+    def _assign_dummy(self, x):
+        x[x[0] + 1:] = 0.
+        return x
+
+    def _prep_train_inputs(self, input_array, e_id):
+        train_seq = np.split(input_array, np.cumsum(np.unique(e_id, return_counts=True)[1])[:-1])
+        no_features = input_array.shape[1]
+        for i, seq in enumerate(train_seq):
+            train_seq[i] = seq.reshape(1, -1, no_features)
+        return train_seq
+
+    def _prep_train_outputs(self, fault_start, e_id):
+        self.max_rul = np.unique(e_id, return_counts=True)[-1] - fault_start
+        output_seq = []
+
+        for i in range(e_id.max()):
+            output_seq.append(np.concatenate((np.repeat(self.max_rul[i], fault_start[i]),
+                                              np.arange(self.max_rul[i] - 1, -1, -1)), axis=0).reshape(1, -1, 1))
+        return output_seq
+
+    def _create_train_inputs(self, fault_start, input_array, e_id):
+        return self._prep_train_inputs(input_array, e_id), self._prep_train_outputs(fault_start, e_id)
+
+    def _create_test_inputs(self, input_array, e_id):
+        no_features = input_array.shape[1]
+        seq_list = np.split(input_array, np.cumsum(np.unique(e_id, return_counts=True)[1])[:-1])
+        for i, seq in enumerate(seq_list):
+            seq_list[i] = seq.reshape(1, -1, no_features)
+        return seq_list
+
+    def create_inputs(self, input_array, e_id, fault_start=None):
+
+        if self.max_rul is None:
+            return self._create_train_inputs(fault_start, input_array, e_id)
+        else:
+            return self._create_test_inputs(input_array, e_id)
 
 
 if __name__ == '__main__':
@@ -79,7 +120,7 @@ if __name__ == '__main__':
     test_df = raw_data.Test_input[selected_feat]
     e_id_df = raw_data.Train_input['Engine ID']
     e_id_test_df = raw_data.Test_input['Engine ID']
-    preper = PrepRnnInOut()
+    preper = PrepRnnInOut_seq()
 
     x, y = preper.create_inputs(train_df.to_numpy(), e_id_df.to_numpy(), np.array([20] * e_id_df.max()))
     z = preper.create_inputs(test_df.to_numpy(), e_id_test_df.to_numpy())
