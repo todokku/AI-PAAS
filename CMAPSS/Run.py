@@ -10,21 +10,20 @@ import tempfile
 import mlflow
 from EstimatorCMAPSS import Estimator
 
-params = {'ds_no': 1,
+params = {'ds_no': 3,
+          'out_seq': True,
+          'enable_dimred': True,
 
           'window_len': 7,
           'poly_order': 3,
-          'var_threshold': 0.7,
-          'conf_factor': -0.25,
-          's_len': 5,
-          'initial_cutoff': 0.,
-          'ins_dropped': 0.,
+          'var_threshold': 0.95,
+          'conf_factor': 0.,
 
-          'rnn_neurons': [10],
-          'ff_neurons': [10],
-          'rnn_type': 'LSTM',
+          'rnn_neurons': [10, 10],
+          'ff_neurons': [10, 10],
+          'rnn_type': 'simpleRNN',
 
-          'epochs': 5,
+          'epochs': 10,
 
           'lRELU_alpha': 0.3,
           'lr': 0.002,
@@ -34,7 +33,7 @@ params = {'ds_no': 1,
           'l2_b': 0.,
           'l2_r': 0.,
           'enable_norm': False,
-          'final_activation': None}
+          'final_activation': 'softplus'}
 
 mlflow.set_tracking_uri('sqlite:///mlflow.db')
 
