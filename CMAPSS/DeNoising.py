@@ -1,9 +1,9 @@
 """
-AI-AS ,Ryerson Univesity
+AIAS ,Ryerson Univesity
 
 @author:
     Tejas Janardhan
-    AI-AS Phd Student
+    AIAS Phd Student
 
 """
 
@@ -39,21 +39,22 @@ class DeNoiser:
 
 
 if __name__ == '__main__':
-    from Input import CMAPSS
+    from GetCMAPSS import CMAPSS
 
     raw_data = CMAPSS(1)
-    de_noise = DeNoiser(7, 3)
+    de_noise = DeNoiser(41, 3)
     raw_data.get_data()
 
     selected_feat = ['T24', 'T30', 'T50', 'P30', 'Nf', 'Nc', 'Ps30', 'phi', 'NRf', 'NRc', 'BPR', 'W31', 'W32']
 
-    raw_df = raw_data.Train_input[['Engine ID'] + selected_feat]
-    smooth_df = de_noise.smooth(raw_df)
+    raw_df = raw_data.Train_input[selected_feat]
+    e_id = raw_data.Train_input['Engine ID']
+    smooth_df = de_noise.smooth(raw_df, e_id)
 
     engine_no = 6
     # Plotting all Features
-    e_dfr = raw_df.loc[raw_df['Engine ID'] == engine_no, :]
-    e_dfs = smooth_df.loc[raw_df['Engine ID'] == engine_no, :]
+    e_dfr = raw_df.loc[e_id == engine_no, :]
+    e_dfs = smooth_df.loc[e_id == engine_no, :]
     for i in range(1, raw_df.shape[1]):
         plt.title(f'Engine Number {engine_no}')
         plt.plot(e_dfr.iloc[:, i])

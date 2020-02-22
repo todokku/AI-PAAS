@@ -9,6 +9,7 @@ AI-PAAS ,Ryerson Univesity
 
 import numpy as np
 import tensorflow as tf
+import sklearn.preprocessing as skp
 
 
 def read_model(path):

@@ -1,9 +1,9 @@
 """
-AI-PAAS ,Ryerson Univesity
+AIAS ,Ryerson Univesity
 
 @author:
     Tejas Janardhan
-    AI-PAAS Phd Student
+    AIAS Phd Student
 
 giving a rough estimate of fault of the signal
 
@@ -26,13 +26,14 @@ class FaultDetection:
         return np.polyfit(x, y, 2)
 
     def get_fault_start(self, input_df,
-                          e_id_df):  # Provides an estimate for the number of faulty cycles in each engine
+                        e_id_df):  # Provides an estimate for the number of faulty cycles in each engine
 
         no_engines = e_id_df.max()
         fault_st_mean = np.full(no_engines, 0)
         fault_st_std = np.full(no_engines, 0)
 
         input_df = pd.concat((e_id_df, input_df), axis=1)
+        features = input_df.shape[1]
 
         for i, in_e_df in input_df.groupby('Engine ID'):
             p_coeff = np.apply_along_axis(self._poly_fit, 0, in_e_df.iloc[:, 1:])
@@ -41,6 +42,11 @@ class FaultDetection:
                               -p_coeff[1, :] / (2 * p_coeff[0, :]) < in_e_df.shape[0]],
                              axis=0)
             p_coeff = p_coeff[:, b_array]
+
+            if p_coeff.shape[1] < features//3:
+                fault_st_mean[i - 1] = in_e_df.shape[0]//4
+                fault_st_std[i - 1] = 0
+                raise Warning('Dummy Fault Start added due to insufficient info')
 
             self.co_eff.append(p_coeff)
             self.ig_feature.append(b_array)
@@ -67,7 +73,7 @@ if __name__ == '__main__':
     from DeNoising import DeNoiser
     from Normalising import Normalizer
 
-    ds_no = 2
+    ds_no = 4
 
     raw_data = CMAPSS(ds_no)
     de_noise = DeNoiser(7, 3)

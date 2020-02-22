@@ -1,5 +1,9 @@
 """
-Input for the Satellite Data
+AIAS ,Ryerson Univesity
+
+@author:
+    Tejas Janardhan
+    AIAS Phd Student
 
 """
 

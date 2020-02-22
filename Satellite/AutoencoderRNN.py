@@ -1,9 +1,9 @@
 """
-AI-PAAS ,Ryerson Univesity
+AIAS ,Ryerson Univesity
 
 @author:
     Tejas Janardhan
-    AI-PAAS Phd Student
+    AIAS Phd Student
 
 """
 import tensorflow as tf

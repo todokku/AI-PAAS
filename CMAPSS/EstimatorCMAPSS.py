@@ -1,9 +1,9 @@
 """
-AI-AS ,Ryerson Univesity
+AIAS ,Ryerson Univesity
 
 @author:
     Tejas Janardhan
-    AI-AS Phd Student
+    AIAS Phd Student
 
 """
 

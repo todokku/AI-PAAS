@@ -55,11 +55,11 @@ selected_features = list(features[i] for i in selected_indices - 1)
 
 data_folder = 'C:/Users/strix/Documents/Python Scripts/DLRADO/NASA_RUL_-CMAPS--master/CMAPSSData'
 # %%
-window_size = 17
+window_size = 20
 window_stride = 1
-max_rul = 139
+max_rul = 129
 
-dataset_no = 4
+dataset_no = 1
 
 # if dataset_no == 1 or dataset_no == 3:
 min_max_scaler = MinMaxScaler(feature_range=(-1, 1))
