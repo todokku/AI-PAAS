@@ -144,20 +144,20 @@ class RNNtoFF:
 
     def _add_RNN(self, i, model):
         if len(self.rnn_neurons[i]) == 1:
-            model.add(self._RNN(0, False, (None, self.features)))
+            model.add(self._RNN(i, 0, False, (None, self.features)))
         else:
-            model.add(self._RNN(0, True, (None, self.features)))
+            model.add(self._RNN(i, 0, True, (None, self.features)))
         if self.enable_norm:
             model.add(tf.keras.layers.LayerNormalization())
 
         if len(self.rnn_neurons[i]) > 2:
             for j in range(1, len(self.rnn_neurons[i]) - 1):
-                model.add(self._RNN(j, True))
+                model.add(self._RNN(i, j, True))
                 if self.enable_norm:
                     model.add(tf.keras.layers.LayerNormalization())
 
         if len(self.rnn_neurons[i]) > 1:
-            model.add(self._RNN(-1, False))
+            model.add(self._RNN(i, -1, False))
             if self.enable_norm:
                 model.add(tf.keras.layers.LayerNormalization())
 
