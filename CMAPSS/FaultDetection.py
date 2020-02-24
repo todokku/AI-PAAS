@@ -11,7 +11,7 @@ giving a rough estimate of fault of the signal
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-
+import warnings
 
 class FaultDetection:
 
@@ -46,22 +46,22 @@ class FaultDetection:
             if p_coeff.shape[1] < features//3:
                 fault_st_mean[i - 1] = in_e_df.shape[0]//4
                 fault_st_std[i - 1] = 0
-                raise Warning('Dummy Fault Start added due to insufficient info')
+                warnings.warn('Dummy Fault Start added due to insufficient info')
+            else:
+                self.co_eff.append(p_coeff)
+                self.ig_feature.append(b_array)
 
-            self.co_eff.append(p_coeff)
-            self.ig_feature.append(b_array)
+                st_pts = np.apply_along_axis(np.roots, 0, p_coeff[:2, :])
 
-            st_pts = np.apply_along_axis(np.roots, 0, p_coeff[:2, :])
+                q25_75 = np.percentile(st_pts, [25, 75])
 
-            q25_75 = np.percentile(st_pts, [25, 75])
+                iqr = q25_75[1] - q25_75[0]
+                st_pts = st_pts[np.all([(st_pts < q25_75[1] + 1.5 * iqr),
+                                        (st_pts > q25_75[0] - 1.5 * iqr)],
+                                       axis=0)]
 
-            iqr = q25_75[1] - q25_75[0]
-            st_pts = st_pts[np.all([(st_pts < q25_75[1] + 1.5 * iqr),
-                                    (st_pts > q25_75[0] - 1.5 * iqr)],
-                                   axis=0)]
-
-            fault_st_mean[i - 1] = st_pts.mean()
-            fault_st_std[i - 1] = (st_pts.var()) ** 0.5
+                fault_st_mean[i - 1] = st_pts.mean()
+                fault_st_std[i - 1] = (st_pts.var()) ** 0.5
 
         fault_start = np.round(fault_st_mean + fault_st_std * self.conf_fac).astype(int)
 

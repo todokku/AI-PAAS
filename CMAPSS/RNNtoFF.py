@@ -54,13 +54,15 @@ class DataGenerator_seq(tf.keras.utils.Sequence):
 
 class RNNtoFF:
 
-    def __init__(self, features, rnn_neurons=[5, 5], ff_neurons=[5], rnn_type='simpleRNN', epochs=1, lRELU_alpha=0.05,
-                 lr=0.001, dropout=0.4, rec_dropout=0.2, l2_k=0.001, l2_b=0., l2_r=0., run_id=None, model_dir=None,
-                 early_stopping=False, enable_norm=False, final_activation=None):
+    def __init__(self, features, rnn_neurons=[[5, 5],[5]], ff_neurons=[[5],[5]], rnn_type='simpleRNN', epochs=1,
+                 lRELU_alpha=0.05, lr=0.001, dropout=0.4, rec_dropout=0.2, l2_k=0.001, l2_b=0., l2_r=0., run_id=None,
+                 model_dir=None, early_stopping=False, enable_norm=False, final_activation=None):
 
         self.rnn_type = rnn_type
         self.rnn_neurons = rnn_neurons
         self.ff_neurons = ff_neurons
+
+        assert len(rnn_neurons) == len(ff_neurons)
 
         self.features = features
         self.epochs = epochs
@@ -81,10 +83,10 @@ class RNNtoFF:
 
         self.train_counter = 0
 
-    def _RNN(self, i, return_sequences, input_shape=None):
+    def _RNN(self, i, j, return_sequences, input_shape=None):
         if self.rnn_type == 'simpleRNN':
             if input_shape is None:
-                return tf.keras.layers.SimpleRNN(self.rnn_neurons[i],
+                return tf.keras.layers.SimpleRNN(self.rnn_neurons[i][j],
                                                  dropout=self.dropout,
                                                  recurrent_dropout=self.rec_dropout,
                                                  kernel_regularizer=self._l2_k,
@@ -92,7 +94,7 @@ class RNNtoFF:
                                                  recurrent_regularizer=self._l2_r,
                                                  return_sequences=return_sequences)
             else:
-                return tf.keras.layers.SimpleRNN(self.rnn_neurons[i],
+                return tf.keras.layers.SimpleRNN(self.rnn_neurons[i][j],
                                                  input_shape=input_shape,
                                                  dropout=self.dropout,
                                                  recurrent_dropout=self.rec_dropout,
@@ -102,7 +104,7 @@ class RNNtoFF:
                                                  return_sequences=return_sequences)
         elif self.rnn_type == 'LSTM':
             if input_shape is None:
-                return tf.keras.layers.LSTM(self.rnn_neurons[i],
+                return tf.keras.layers.LSTM(self.rnn_neurons[i][j],
                                             dropout=self.dropout,
                                             recurrent_dropout=self.rec_dropout,
                                             kernel_regularizer=self._l2_k,
@@ -110,7 +112,7 @@ class RNNtoFF:
                                             recurrent_regularizer=self._l2_r,
                                             return_sequences=return_sequences)
             else:
-                return tf.keras.layers.LSTM(self.rnn_neurons[i],
+                return tf.keras.layers.LSTM(self.rnn_neurons[i][j],
                                             input_shape=input_shape,
                                             dropout=self.dropout,
                                             recurrent_dropout=self.rec_dropout,
@@ -121,7 +123,7 @@ class RNNtoFF:
 
         elif self.rnn_type == 'GRU':
             if input_shape is None:
-                return tf.keras.layers.GRU(self.rnn_neurons[i],
+                return tf.keras.layers.GRU(self.rnn_neurons[i][j],
                                            dropout=self.dropout,
                                            recurrent_dropout=self.rec_dropout,
                                            kernel_regularizer=self._l2_k,
@@ -129,7 +131,7 @@ class RNNtoFF:
                                            recurrent_regularizer=self._l2_r,
                                            return_sequences=return_sequences)
             else:
-                return tf.keras.layers.GRU(self.rnn_neurons[i],
+                return tf.keras.layers.GRU(self.rnn_neurons[i][j],
                                            input_shape=input_shape,
                                            dropout=self.dropout,
                                            recurrent_dropout=self.rec_dropout,
@@ -140,21 +142,21 @@ class RNNtoFF:
         else:
             raise Exception('Invalid RNN type')
 
-    def _create_RNN(self, model):
-        if len(self.rnn_neurons) == 1:
+    def _add_RNN(self, i, model):
+        if len(self.rnn_neurons[i]) == 1:
             model.add(self._RNN(0, False, (None, self.features)))
         else:
             model.add(self._RNN(0, True, (None, self.features)))
         if self.enable_norm:
             model.add(tf.keras.layers.LayerNormalization())
 
-        if len(self.rnn_neurons) > 2:
-            for i in range(1, len(self.rnn_neurons) - 1):
-                model.add(self._RNN(i, True))
+        if len(self.rnn_neurons[i]) > 2:
+            for j in range(1, len(self.rnn_neurons[i]) - 1):
+                model.add(self._RNN(j, True))
                 if self.enable_norm:
                     model.add(tf.keras.layers.LayerNormalization())
 
-        if len(self.rnn_neurons) > 1:
+        if len(self.rnn_neurons[i]) > 1:
             model.add(self._RNN(-1, False))
             if self.enable_norm:
                 model.add(tf.keras.layers.LayerNormalization())
@@ -168,17 +170,18 @@ class RNNtoFF:
         self._l2_r = tf.keras.regularizers.l2(l=self.l2_r)
         self._l2_b = tf.keras.regularizers.l2(l=self.l2_b)
 
-        model = self._create_RNN(model)
+        for i in range(len[self.rnn_neurons]):
+            model = self._add_RNN(i, model)
 
-        for i in range(0, len(self.ff_neurons)):
+            for j in range(len(self.ff_neurons)):
 
-            model.add(tf.keras.layers.Dense(self.ff_neurons[i],
-                                            kernel_regularizer=self._l2_k,
-                                            bias_regularizer=self._l2_b))
+                model.add(tf.keras.layers.Dense(self.ff_neurons[i][j],
+                                                kernel_regularizer=self._l2_k,
+                                                bias_regularizer=self._l2_b))
 
-            model.add(tf.keras.layers.LeakyReLU(self.lRELU_alpha))
-            if self.enable_norm:
-                model.add(tf.keras.layers.BatchNormalization())
+                model.add(tf.keras.layers.LeakyReLU(self.lRELU_alpha))
+                if self.enable_norm:
+                    model.add(tf.keras.layers.BatchNormalization())
 
         # Final Layer
         model.add(tf.keras.layers.Dense(1, activation=self.final_activation))
