@@ -12,7 +12,7 @@ from Normalising import Normalizer
 from DeNoising import DeNoiser
 from DimensionReduction import DimReduction
 from FaultDetection import FaultDetection
-from BatchPrep import PrepRnnInOut, PrepRnnInOut_seq
+from SequencePrep import PrepRnnInOut, PrepRnnInOut_seq
 from RNNtoFF import RNNtoFF, RNNtoFF_seq
 from TestingCMAPSS import Tester
 
