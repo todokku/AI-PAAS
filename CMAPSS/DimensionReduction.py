@@ -67,8 +67,8 @@ if __name__ == '__main__':
     de_noise = DeNoiser(7, 3)
     train_df = de_noise.smooth(train_df, e_id)
 
-    dreduce = DimReduction(0.7)
-    train_array = dreduce.reduce_dimensions(train_df.to_numpy())
+    d_reduce = DimReduction(0.7)
+    train_array = d_reduce.reduce_dimensions(train_df.to_numpy())
 
     engine_no = 6
     # Plotting all Features

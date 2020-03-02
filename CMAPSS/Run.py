@@ -11,13 +11,14 @@ import mlflow
 from EstimatorCMAPSS import Estimator
 
 params = {'ds_no': 3,
-          'out_seq': True,
+          'out_seq': False,
           'enable_dimred': True,
 
           'window_len': 41,
           'poly_order': 3,
           'var_threshold': 0.9,
           'conf_factor': 0.,
+          's_len': 5,
 
           'rnn_neurons': [30, 30],
           'ff_neurons': [20, 20],
@@ -36,7 +37,7 @@ params = {'ds_no': 3,
           'final_activation': 'softplus'}
 
 mlflow.set_tracking_uri('sqlite:///mlflow.db')
-
+#TODO Add experiment name
 with mlflow.start_run():
     tmpdir = tempfile.TemporaryDirectory()
     run_id = mlflow.active_run().info.run_id

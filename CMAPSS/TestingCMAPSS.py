@@ -64,6 +64,9 @@ class Tester:
 
         return score
 
+    def _plot_results(self):
+        pass
+
     def _calc_score(self, x):
         x[x >= 0] = np.exp(x[x >= 0] / 10 - 1)
         x[x < 0] = np.exp(-(x[x < 0] / 13) - 1)

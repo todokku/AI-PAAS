@@ -20,7 +20,7 @@ from TestingCMAPSS import Tester
 class Estimator:
 
     def __init__(self, ds_no, out_seq=True, enable_dimred=True, window_len=7, poly_order=3, var_threshold=0.9, conf_factor=0, s_len=5,
-                 initial_cutoff=0.75, ins_dropped=0.25, rnn_neurons=[10, 10], ff_neurons=[10], rnn_type='simpleRNN',
+                 initial_cutoff=0.75, ins_dropped=0.25, rnn_neurons=[[10, 10]], ff_neurons=[[10]], rnn_type='simpleRNN',
                  epochs=1, lRELU_alpha=0.3, lr=0.001, dropout=0.4, rec_dropout=0.2, l2_k=0.001, l2_b=0., l2_r=0.,
                  model_dir=None, run_id=None, enable_norm=True, final_activation=None):
         self.processed_train = False
@@ -91,6 +91,7 @@ class Estimator:
         else:
             input_array = input_df.to_numpy()
             features = input_df.shape[1]
+            
         if not self.processed_train:
             if self.out_seq:
                 self.model_manager = RNNtoFF_seq(features, self.rnn_neurons, self.ff_neurons,

@@ -11,13 +11,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-class RULExtractor:
+class ConstLinearExtractor:
 
     def __init__(self, initial=10, step_size=5):
         self.initial = initial
         self.step_size = step_size
+        self.coeffs = []
 
-    def extract_ruls(self, input_list):
+    def rul_extractor(self, input_list):
 
         rul = np.array([])
 
@@ -32,19 +33,39 @@ class RULExtractor:
                 linear_array = input_array[self.initial + i * self.step_size:]
 
                 linear_array[0] = const_array.mean()
-                weights = np.repeat(1, linear_array.size)
-                weights[0] = 100
+                # weights = np.repeat(1, linear_array.size)
+                # weights[0] = 100
 
                 x = np.arange(1, linear_array.size + 1)
                 coeff = np.polynomial.polynomial.Polynomial.fit(x,
                                                                 linear_array,
-                                                                1,
-                                                                w=weights).coef
+                                                                1).coef
 
-                error = np.append(error, const_array.var() + (linear_array - coeff[0]*x - np.repeat(coeff[1], x.size).var()))
-                h_rul = np.append(h_rul, coeff[0]*x[-1]+coeff[1])
+                error = np.append(error,
+                                  const_array.var() + (linear_array - coeff[0] * x - np.repeat(coeff[1], x.size)).var())
+                h_rul = np.append(h_rul, coeff[0] * x[-1] + coeff[1])
 
             rul = np.append(rul, h_rul[np.argmin(error)])
+
+        return rul
+
+
+class ParabolaExtractor:
+
+    def __init__(self, adj_factor):
+        self.coeffs = np.array([])
+        self.adj_factor = adj_factor
+
+    def rul_extractor(self, input_list):
+
+        rul = np.array([])
+
+        for input_array in input_list:
+
+            coeff = np.polyfit(np.arange(1, input_array.size+1), input_array, 2)
+            self.coeffs = np.append(self.coeffs, coeff)
+
+            rul = np.append(rul, np.polyval(coeff, input_array.size*self.adj_factor))
 
         return rul
 
@@ -65,7 +86,10 @@ if __name__ == '__main__':
     c_rul = [50, 100, 100, 75, 200]
 
     for i in range(5):
-        test_list.append(rul_generator(time_steps[i], c_rul[i], 20))
+        rul_seq = rul_generator(time_steps[i], c_rul[i], 20)
+        test_list.append(rul_seq)
+        plt.plot(rul_seq)
+        plt.show()
 
     extractor = RULExtractor(10, 5)
 
