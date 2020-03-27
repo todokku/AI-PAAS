@@ -33,7 +33,7 @@ class DataGenerator(tf.keras.utils.Sequence):
         np.random.shuffle(self.index)
 
 
-class DataGenerator_seq(tf.keras.utils.Sequence):
+class DataGeneratorSeq(tf.keras.utils.Sequence):
 
     def __init__(self, in_list, out_list):
         self.in_list = in_list
@@ -261,7 +261,7 @@ class RNNtoFF:
         plt.show()
 
 
-class RNNtoFF_seq:
+class RNNtoFFSeq:
 
     def __init__(self, features, rnn_neurons=[5, 5], ff_neurons=[5], rnn_type='simpleRNN', epochs=1, lRELU_alpha=0.3,
                  lr=0.001, dropout=0.4, rec_dropout=0.2, l2_k=0.001, l2_b=0., l2_r=0., run_id=None, model_dir=None,
@@ -288,6 +288,7 @@ class RNNtoFF_seq:
         self.early_stopping = early_stopping
         self.enable_norm = enable_norm
 
+        self.model = None
         self.train_counter = 0
 
     def _RNN(self, i, input_shape=None):
@@ -398,7 +399,8 @@ class RNNtoFF_seq:
                              train,  # Tuple
                              val=None):  # Tuple
 
-        return self.retrain_model(self._create_model(), train, val)  # retrain just used for simplicity
+        self.model = self._create_model()
+        return self.retrain_model(self.model, train, val)  # retrain just used for simplicity
 
     def retrain_model(self, model, train, val=None):
 
@@ -411,12 +413,12 @@ class RNNtoFF_seq:
             callbacks = []
 
         if val is None:
-            self.h = model.fit(DataGenerator_seq(train[0], train[1]),
+            self.h = model.fit(DataGeneratorSeq(train[0], train[1]),
                                epochs=self.epochs,
                                callbacks=callbacks)
         else:
-            self.h = model.fit(DataGenerator_seq(train[0], train[1]),
-                               validation_data=DataGenerator_seq(val[0], val[1]),
+            self.h = model.fit(DataGeneratorSeq(train[0], train[1]),
+                               validation_data=DataGeneratorSeq(val[0], val[1]),
                                epochs=self.epochs,
                                callbacks=callbacks)
 
@@ -473,12 +475,12 @@ if __name__ == "__main__":
     low_val = 0
     high_val = 100
 
-    for i in range(number_sequences):
-        in_sequences.append(np.random.randint(low_val, high_val, (1, seq_len[i], 1)))
-        out_sequences.append(np.random.randint(low_val, high_val, (1, seq_len[i], 1)))
+    for ii in range(number_sequences):
+        in_sequences.append(np.random.randint(low_val, high_val, (1, seq_len[ii], 1)))
+        out_sequences.append(np.random.randint(low_val, high_val, (1, seq_len[ii], 1)))
 
     # output = np.random.randint(0, 5, number_sequences)
 
-    model_manager = RNNtoFF_seq(1)
+    model_manager = RNNtoFFSeq(1)
 
-    model = model_manager.create_trained_model((in_sequences, out_sequences))
+    modell = model_manager.create_trained_model((in_sequences, out_sequences))

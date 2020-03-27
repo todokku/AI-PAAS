@@ -62,10 +62,11 @@ class ParabolaExtractor:
 
         for input_array in input_list:
 
+            input_array = input_array.reshape(-1)
             coeff = np.polyfit(np.arange(1, input_array.size+1), input_array, 2)
             self.coeffs = np.append(self.coeffs, coeff)
 
-            rul = np.append(rul, np.polyval(coeff, input_array.size*self.adj_factor))
+            rul = np.append(rul, np.polyval(coeff, int(round(input_array.size*self.adj_factor))))
 
         return rul
 
