@@ -15,5 +15,4 @@ class TCNN:
         pass
 
     def _create_model(self):
-        pass
 

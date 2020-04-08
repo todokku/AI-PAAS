@@ -81,11 +81,11 @@ def plot_RUL(real_rul, predicted_rul):
 # FD004 17, 1, 139
 i = 1
 
-window_size = 20
+window_size = 24
 window_stride = 1
 max_rul = 129
 
-model = tf.keras.models.load_model(f'C:/Users/strix/Documents/Python Scripts/Models/model_new_actual.hdf5')
+model = tf.keras.models.load_model(f'C:/Users/strix/Documents/Python Scripts/Models/model{i}_actual.hdf5')
 dHandler_cmaps = CMAPSSDataHandler(data_folder, i, selected_features, max_rul,
                                    window_size, window_stride, data_scaler=min_max_scaler)
 

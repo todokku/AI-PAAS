@@ -66,7 +66,7 @@ class PrepRnnInOut:
             return self._create_test_inputs(input_array, e_id)
 
 
-class PrepRnnInOutSeq:
+class PrepRnnInOut_seq:
 
     def __init__(self):
         self.max_rul = None
@@ -116,7 +116,7 @@ if __name__ == '__main__':
     test_df = raw_data.Test_input[selected_feat]
     e_id_df = raw_data.Train_input['Engine ID']
     e_id_test_df = raw_data.Test_input['Engine ID']
-    preper = PrepRnnInOutSeq()
+    preper = PrepRnnInOut_seq()
 
     x, y = preper.create_inputs(train_df.to_numpy(), e_id_df.to_numpy(), np.array([20] * e_id_df.max()))
     z = preper.create_inputs(test_df.to_numpy(), e_id_test_df.to_numpy())

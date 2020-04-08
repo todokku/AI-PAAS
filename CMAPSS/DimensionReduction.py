@@ -11,7 +11,7 @@ import sklearn.decomposition as skl_d
 import matplotlib.pyplot as plt
 
 
-class DimensionReducer:
+class DimReduction:
 
     def __init__(self, var_threshold, no_features=None):
 
@@ -41,7 +41,7 @@ class DimensionReducer:
 
 
 if __name__ == '__main__':
-    from GetCMAPSS import CMAPSS
+    from Input import CMAPSS
     from Normalising import Normalizer
     from DeNoising import DeNoiser
 
@@ -67,7 +67,7 @@ if __name__ == '__main__':
     de_noise = DeNoiser(7, 3)
     train_df = de_noise.smooth(train_df, e_id)
 
-    d_reduce = DimensionReducer(0.7)
+    d_reduce = DimReduction(0.7)
     train_array = d_reduce.reduce_dimensions(train_df.to_numpy())
 
     engine_no = 6

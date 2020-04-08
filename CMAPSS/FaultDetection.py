@@ -13,8 +13,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import warnings
 
-
-class FaultDetector:
+class FaultDetection:
 
     def __init__(self, conf_fac):
         self.conf_fac = conf_fac
@@ -44,8 +43,8 @@ class FaultDetector:
                              axis=0)
             p_coeff = p_coeff[:, b_array]
 
-            if p_coeff.shape[1] < features // 3:
-                fault_st_mean[i - 1] = in_e_df.shape[0] // 4
+            if p_coeff.shape[1] < features//3:
+                fault_st_mean[i - 1] = in_e_df.shape[0]//4
                 fault_st_std[i - 1] = 0
                 warnings.warn('Dummy Fault Start added due to insufficient info')
             else:
@@ -95,16 +94,16 @@ if __name__ == '__main__':
     train_df = norm.normalising(train_df, op_cond_df)
     train_df = de_noise.smooth(train_df, e_id)
 
-    fd = FaultDetector(-0.1)
-    fault_startt = fd.get_fault_start(train_df, e_id)
+    fd = FaultDetection(-0.1)
+    fault_start = fd.get_fault_start(train_df, e_id)
 
     engine_no = 1
     # Plotting all Features
     e_df = train_df.loc[e_id == engine_no, fd.ig_feature[engine_no - 1]]
-    xx = np.arange(e_df.shape[0])
+    x = np.arange(e_df.shape[0])
     for i in range(0, e_df.shape[1]):
         plt.title(f'Engine Number {engine_no}')
-        plt.plot(xx, e_df.iloc[:, i])
+        plt.plot(x, e_df.iloc[:, i])
         plt.plot(np.polyval(fd.co_eff[engine_no - 1][:, i], x))
         plt.ylabel(selected_feat[i - 1])
         plt.xlabel('Cycles')

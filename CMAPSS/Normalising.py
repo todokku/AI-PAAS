@@ -17,11 +17,11 @@ class Normalizer:
         self.no_op_cond = no_op_cond
         self.cluster = cluster
 
-    def normalise(self, input_df, op_cond_df = None):
+    def normalising(self, input_df, op_cond_df=None):
 
-        if self.no_op_cond == 1:
+        if self.no_op_cond is None:
 
-            output_df = input_df.apply(lambda x: (x - x.mean()) / x.std())
+            input_df = input_df.apply(lambda x: (x - x.mean()) / x.std())
 
         else:
 
@@ -31,19 +31,16 @@ class Normalizer:
                 self.cluster = skl_c.KMeans(self.no_op_cond, random_state=0).fit(op_cond_df)
 
             op_state = self.cluster.predict(op_cond_df)
-            output_df = input_df.copy()
+
             for i in range(self.no_op_cond):
-                output_df.loc[op_state == i, :] = input_df.loc[op_state == i, :].apply(
+                input_df.loc[op_state == i, :] = input_df.loc[op_state == i, :].apply(
                     lambda x: (x - x.mean()) / x.std())
 
-            output_df = output_df.apply(lambda x: (x - x.mean()) / x.std())
-
-        return output_df
+        return input_df
 
 
 if __name__ == '__main__':
-    from GetCMAPSS import CMAPSS
-    import matplotlib.pyplot as plt
+    from Input import CMAPSS
 
     ds_no = 2
 
@@ -60,12 +57,5 @@ if __name__ == '__main__':
         norm = Normalizer()
 
     train_df = data.Train_input[selected_feat]
-    e_id_df = data.Train_input['Engine ID']
-    train_df = norm.normalising(train_df, op_cond_df)
 
-    engine_no = 5
-    feature_no = 5
-    plt.plot(data.Train_input.loc[e_id_df == engine_no, selected_feat[feature_no]])
-    plt.show()
-    plt.plot(train_df.loc[e_id_df == engine_no, selected_feat[feature_no]])
-    plt.show()
+    train_df = norm.normalising(train_df, op_cond_df)
