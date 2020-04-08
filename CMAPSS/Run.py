@@ -10,21 +10,19 @@ import tempfile
 import mlflow
 from EstimatorCMAPSS import Estimator
 
-params = {'ds_no': 3,
-          'out_seq': False,
+params = {'ds_no': 2,
+          'out_seq': True,
           'enable_dimred': True,
 
           'window_len': 41,
-          'poly_order': 3,
-          'var_threshold': 0.9,
-          'conf_factor': 0.,
-          's_len': 5,
+          'poly_order': 0,
+          'var_threshold': 0.6,
 
-          'rnn_neurons': [30, 30],
-          'ff_neurons': [20, 20],
+          'rnn_neurons': [80, 80],
+          'ff_neurons': [30, 30],
           'rnn_type': 'LSTM',
 
-          'epochs': 20,
+          'epochs': 5,
 
           'lRELU_alpha': 0.3,
           'lr': 0.002,

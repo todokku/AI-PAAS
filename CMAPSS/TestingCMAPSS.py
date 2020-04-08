@@ -9,8 +9,8 @@ AI-PAAS ,Ryerson Univesity
 
 import numpy as np
 import tensorflow as tf
-import sklearn.preprocessing as skp
-
+import matplotlib.pyplot as plt
+from RULExtractor import ParabolaExtractor
 
 def read_model(path):
     with open(path + '.json', 'r') as json_file:
@@ -24,8 +24,8 @@ def read_model(path):
 
 class Tester:
 
-    def __init__(self):
-        pass
+    def __init__(self, enable_extractor):
+        self.enable_extractor = enable_extractor
 
     def get_score(self, model, test_list, true_rul_array):
         true_rul_array = true_rul_array.reshape(-1, 1)
@@ -48,6 +48,9 @@ class Tester:
         for seq in test_list:
             est_seq.append(model.predict(seq, batch_size=None))
         # Calculating S score from the NASA paper, variables can be found there
+        if self.enable_extractor:
+            pass
+
         self.est_rul = []
         for seq in est_seq:
             self.est_rul.append(seq[:, -1, :])
@@ -62,10 +65,19 @@ class Tester:
         score = self._calc_score(pred_err).sum()
         print(f'\nScore is - {score} and MSE is - {self.mse} and MPE is - {self.mpe} !!! Cry or Celebrate\n')
 
+        self._plot_results(true_rul_array)
+
         return score
 
-    def _plot_results(self):
-        pass
+    def _plot_results(self, true_rul_array):
+
+        ind = np.argsort(true_rul_array)
+        true_rul_array = true_rul_array[ind]
+        self.est_rul = self.est_rul[ind]
+
+        plt.scatter(np.arange(1, true_rul_array.size), true_rul_array, zorder=1)
+        plt.scatter(np.arange(1, true_rul_array.size), self.est_rul, c='r', zorder=2)
+        plt.show()
 
     def _calc_score(self, x):
         x[x >= 0] = np.exp(x[x >= 0] / 10 - 1)
@@ -97,7 +109,7 @@ if __name__ == '__main__':
 
     model_creator = RNNtoFF(1, [5], [3], rnn_type='LSTM')
 
-    model = model_creator.create_trained_model((sequences, output))
+    modell = model_creator.create_trained_model((sequences, output))
 
     tester = Tester()
-    score = tester.get_score(model, sequences, output)
+    scoree = tester.get_score(modell, sequences, output)
